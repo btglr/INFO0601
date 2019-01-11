@@ -7,7 +7,7 @@
  **/
 
 #include <stdlib.h>     /* Pour EXIT_FAILURE */
-#include <ncurses.h>    /* Pour printw, attron, attroff, COLOR_PAIR, getch */
+#include <curses.h>    /* Pour printw, attron, attroff, COLOR_PAIR, getch */
 
 #include "ncurses.h"
 
