@@ -1,6 +1,6 @@
 #include "ncurses.h"
 
-#include <ncurses.h>   /* Pour toutes les fonctions/constantes ncurses */
+#include <curses.h>   /* Pour toutes les fonctions/constantes ncurses */
 #include <stdlib.h>    /* Pour exit, EXIT_FAILURE */
 
 /**
