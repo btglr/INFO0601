@@ -42,7 +42,7 @@ int main() {
   sous_fenetre = subwin(fenetre, HAUTEUR - 2, LARGEUR - 2, POSY + 1, POSX + 1);
   scrollok(sous_fenetre, TRUE);
 
-  wbkgd(sous_fenetre, COLOR_PAIR(1));
+  wbkgd(fenetre, COLOR_PAIR(1));
   wbkgd(sous_fenetre, COLOR_PAIR(2));
   
   /* Création d'un cadre */
