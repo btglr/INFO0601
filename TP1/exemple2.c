@@ -7,7 +7,7 @@
  **/
 
 #include <stdlib.h>     /* Pour EXIT_FAILURE */
-#include <ncurses.h>    /* Pour printw, attron, attroff, COLOR_PAIR, getch */
+#include <curses.h>    /* Pour printw, attron, attroff, COLOR_PAIR, getch */
 
 #include "ncurses.h"
 
@@ -41,6 +41,9 @@ int main() {
   box(fenetre, 0, 0);
   sous_fenetre = subwin(fenetre, HAUTEUR - 2, LARGEUR - 2, POSY + 1, POSX + 1);
   scrollok(sous_fenetre, TRUE);
+
+  wbkgd(sous_fenetre, COLOR_PAIR(1));
+  wbkgd(sous_fenetre, COLOR_PAIR(2));
   
   /* Création d'un cadre */
   wrefresh(fenetre);

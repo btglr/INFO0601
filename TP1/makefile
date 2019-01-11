@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = main
+EXEC = exemple2
 OBJETS = ncurses.o
 NOM_PROJET = TP1
 
@@ -89,4 +89,4 @@ archive: clean
 
 # DEPENDANCES
 ncurses.o: ncurses.c ncurses.h
-main.o: main.c ncurses.h
+exemple2.o: exemple2.c ncurses.h
