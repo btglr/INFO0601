@@ -35,13 +35,13 @@ int main() {
 
     while((i = getch()) != KEY_F(2)) {
         switch(i) {
-            case 49:
+            case '1':
                 color = COLOR_PAIR(3);
                 break;
-            case 50:
+            case '2':
                 color = COLOR_PAIR(4);
                 break;
-            case 51:
+            case '3':
                 color = COLOR_PAIR(5);
                 break;
             default:

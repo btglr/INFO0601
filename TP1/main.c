@@ -99,13 +99,13 @@ int main() {
 
         else {
             switch(i) {
-                case 49:
+                case '1':
                     couleur = texteJaune;
                     break;
-                case 50:
+                case '2':
                     couleur = texteRouge;
                     break;
-                case 51:
+                case '3':
                     couleur = texteVert;
                     break;
                 default:
