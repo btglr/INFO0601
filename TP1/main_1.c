@@ -1,14 +1,14 @@
+#include <curses.h> /* Pour printw, attron, attroff, COLOR_PAIR, getch */
 #include <stdlib.h>
-#include <stdlib.h>     /* Pour EXIT_FAILURE */
-#include <curses.h>    /* Pour printw, attron, attroff, COLOR_PAIR, getch */
+#include <stdlib.h> /* Pour EXIT_FAILURE */
 #include <string.h>
 
 #include "ncurses.h"
 
-#define LARGEUR 20      /* Largeur de la fenêtre */
-#define HAUTEUR 10      /* Hauteur de la fenêtre */
-#define POSX    20      /* Position horizontale de la fenêtre */
-#define POSY    5       /* Position verticale de la fenêtre */
+#define LARGEUR 20 /* Largeur de la fenêtre */
+#define HAUTEUR 10 /* Hauteur de la fenêtre */
+#define POSX 20    /* Position horizontale de la fenêtre */
+#define POSY 5     /* Position verticale de la fenêtre */
 
 int main() {
     int i, color;
@@ -33,8 +33,8 @@ int main() {
     mvwprintw(fenetre, HAUTEUR / 2, (LARGEUR / 2) - strlen(texte) / 2, texte);
     wrefresh(fenetre);
 
-    while((i = getch()) != KEY_F(2)) {
-        switch(i) {
+    while ((i = getch()) != KEY_F(2)) {
+        switch (i) {
             case '1':
                 color = COLOR_PAIR(3);
                 break;
@@ -47,7 +47,7 @@ int main() {
             default:
                 color = COLOR_PAIR(1);
         }
-        
+
         wattron(fenetre, color);
         mvwprintw(fenetre, HAUTEUR / 2, (LARGEUR / 2) - strlen(texte) / 2, texte);
         wattroff(fenetre, color);

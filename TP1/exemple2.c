@@ -6,8 +6,8 @@
  * @version 18/01/2017
  **/
 
-#include <stdlib.h> /* Pour EXIT_FAILURE */
 #include <curses.h> /* Pour printw, attron, attroff, COLOR_PAIR, getch */
+#include <stdlib.h> /* Pour EXIT_FAILURE */
 
 #include "ncurses.h"
 
@@ -16,8 +16,7 @@
 #define POSX 20    /* Position horizontale de la fenêtre */
 #define POSY 5     /* Position verticale de la fenêtre */
 
-int main()
-{
+int main() {
     int i;
     WINDOW *fenetre;
     WINDOW *sous_fenetre;
@@ -29,8 +28,7 @@ int main()
     ncurses_couleurs();
 
     /* Vérification des dimensions du terminal */
-    if ((COLS < POSX + LARGEUR) || (LINES < POSY + HAUTEUR))
-    {
+    if ((COLS < POSX + LARGEUR) || (LINES < POSY + HAUTEUR)) {
         ncurses_stopper();
         fprintf(stderr,
                 "Les dimensions du terminal sont insufisantes : l=%d,h=%d au lieu de l=%d,h=%d\n",
@@ -53,13 +51,11 @@ int main()
 
     /* Attente d'un clic dans la fenêtre ou de F2 */
     printw("Cliquez dans la fenetre ; pressez F2 pour quitter...");
-    while ((i = getch()) != KEY_F(2))
-    {
+    while ((i = getch()) != KEY_F(2)) {
         if ((i == KEY_MOUSE) &&
             (souris_getpos(&sourisX, &sourisY, NULL) == OK))
             if ((sourisX > POSX) && (sourisX < POSX + LARGEUR - 1) &&
-                (sourisY > POSY) && (sourisY < POSY + HAUTEUR - 1))
-            {
+                (sourisY > POSY) && (sourisY < POSY + HAUTEUR - 1)) {
                 cpt++;
                 if (cpt != 1)
                     wprintw(sous_fenetre, "\n");

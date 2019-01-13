@@ -6,8 +6,8 @@
  * @version 18/01/2017
  **/
 
-#include <stdlib.h> /* Pour EXIT_FAILURE */
 #include <curses.h> /* Pour printw, attron, attroff, COLOR_PAIR, getch */
+#include <stdlib.h> /* Pour EXIT_FAILURE */
 
 #include "ncurses.h"
 
@@ -16,8 +16,7 @@
 #define POSX 20    /* Position horizontale de la fenêtre */
 #define POSY 5     /* Position verticale de la fenêtre */
 
-int main()
-{
+int main() {
     int i;
     WINDOW *fenetre;
     int quitter = FALSE;

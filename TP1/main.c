@@ -1,14 +1,14 @@
+#include <curses.h> /* Pour printw, attron, attroff, COLOR_PAIR, getch */
 #include <stdlib.h>
-#include <stdlib.h>     /* Pour EXIT_FAILURE */
-#include <curses.h>    /* Pour printw, attron, attroff, COLOR_PAIR, getch */
+#include <stdlib.h> /* Pour EXIT_FAILURE */
 #include <string.h>
 
 #include "ncurses.h"
 
-#define LARGEUR 50      /* Largeur de la fenêtre */
-#define HAUTEUR 25      /* Hauteur de la fenêtre */
-#define POSX    20      /* Position horizontale de la fenêtre */
-#define POSY    5       /* Position verticale de la fenêtre */
+#define LARGEUR 50 /* Largeur de la fenêtre */
+#define HAUTEUR 25 /* Hauteur de la fenêtre */
+#define POSX 20    /* Position horizontale de la fenêtre */
+#define POSY 5     /* Position verticale de la fenêtre */
 
 int main() {
     int i, couleur;
@@ -25,10 +25,10 @@ int main() {
     ncurses_couleurs();
 
     /* Vérification des dimensions du terminal */
-    if((COLS < POSX + LARGEUR) || (LINES < POSY + HAUTEUR)) {
+    if ((COLS < POSX + LARGEUR) || (LINES < POSY + HAUTEUR)) {
         ncurses_stopper();
-        fprintf(stderr, 
-                "Les dimensions du terminal sont insufisantes : l=%d,h=%d au lieu de l=%d,h=%d\n", 
+        fprintf(stderr,
+                "Les dimensions du terminal sont insufisantes : l=%d,h=%d au lieu de l=%d,h=%d\n",
                 COLS, LINES, POSX + LARGEUR, POSY + HAUTEUR);
         exit(EXIT_FAILURE);
     }
@@ -53,14 +53,14 @@ int main() {
     fenetre = newwin(HAUTEUR, LARGEUR, POSY, POSX);
     box(fenetre, 0, 0);
 
-    mvwprintw(fenetre, 5, (int) ((LARGEUR / 2) - strlen(texte) / 2), texte);
+    mvwprintw(fenetre, 5, (int)((LARGEUR / 2) - strlen(texte) / 2), texte);
     wrefresh(fenetre);
 
-    carre1 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR/9) * 2) - (largeurCarre / 2));
+    carre1 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR / 9) * 2) - (largeurCarre / 2));
     wbkgd(carre1, fondJaune);
-    carre2 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR/9) * 5) - (largeurCarre / 2));
+    carre2 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR / 9) * 5) - (largeurCarre / 2));
     wbkgd(carre2, fondRouge);
-    carre3 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR/9) * 8) - (largeurCarre / 2));
+    carre3 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR / 9) * 8) - (largeurCarre / 2));
     wbkgd(carre3, fondVert);
 
     touchwin(fenetre);
@@ -69,20 +69,20 @@ int main() {
     wrefresh(carre3);
     wrefresh(fenetre);
 
-    while((i = getch()) != KEY_F(2)) {
-        if((i == KEY_MOUSE) && (souris_getpos(&sourisX, &sourisY, NULL) == OK)) {
-            if(sourisY >= POSY + 15 && sourisY < POSY + 15 + hauteurCarre) {
-                if(sourisX >= (POSX + ((LARGEUR/9) * 2) - (largeurCarre / 2)) && sourisX < (POSX + ((LARGEUR/9) * 2) + (largeurCarre / 2))) {
+    while ((i = getch()) != KEY_F(2)) {
+        if ((i == KEY_MOUSE) && (souris_getpos(&sourisX, &sourisY, NULL) == OK)) {
+            if (sourisY >= POSY + 15 && sourisY < POSY + 15 + hauteurCarre) {
+                if (sourisX >= (POSX + ((LARGEUR / 9) * 2) - (largeurCarre / 2)) && sourisX < (POSX + ((LARGEUR / 9) * 2) + (largeurCarre / 2))) {
                     /* Clic sur le premier carré */
                     couleur = texteJaune;
                 }
 
-                else if(sourisX >= (POSX + ((LARGEUR/9) * 5) - (largeurCarre / 2)) && sourisX < (POSX + ((LARGEUR/9) * 5) + (largeurCarre / 2))) {
+                else if (sourisX >= (POSX + ((LARGEUR / 9) * 5) - (largeurCarre / 2)) && sourisX < (POSX + ((LARGEUR / 9) * 5) + (largeurCarre / 2))) {
                     /* Clic sur le second carré */
                     couleur = texteRouge;
                 }
 
-                else if(sourisX >= (POSX + ((LARGEUR/9) * 8) - (largeurCarre / 2)) && sourisX < (POSX + ((LARGEUR/9) * 8) + (largeurCarre / 2))) {
+                else if (sourisX >= (POSX + ((LARGEUR / 9) * 8) - (largeurCarre / 2)) && sourisX < (POSX + ((LARGEUR / 9) * 8) + (largeurCarre / 2))) {
                     /* Clic sur troisième carré */
                     couleur = texteVert;
                 }
@@ -91,14 +91,14 @@ int main() {
                     couleur = -1;
                 }
             }
-            
+
             else {
                 couleur = -1;
             }
         }
 
         else {
-            switch(i) {
+            switch (i) {
                 case '1':
                     couleur = texteJaune;
                     break;
@@ -113,15 +113,14 @@ int main() {
             }
         }
 
-        if(couleur != -1) {
+        if (couleur != -1) {
             wattron(fenetre, couleur);
-            mvwprintw(fenetre, 5, (int) ((LARGEUR / 2) - strlen(texte) / 2), texte);
+            mvwprintw(fenetre, 5, (int)((LARGEUR / 2) - strlen(texte) / 2), texte);
             wattroff(fenetre, couleur);
 
             wrefresh(fenetre);
         }
     }
-
 
     /* Suppression des fenêtres */
     delwin(carre1);
