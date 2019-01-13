@@ -5,3 +5,6 @@
 *.o
 .vscode
 .history
+.idea
+cmake-build-debug
+CMakeLists.txt
