@@ -31,7 +31,7 @@ int main() {
                 "Les dimensions du terminal sont insufisantes : l=%d,h=%d au lieu de l=%d,h=%d\n", 
                 COLS, LINES, POSX + LARGEUR, POSY + HAUTEUR);
         exit(EXIT_FAILURE);
-    }  
+    }
 
     init_pair(3, COLOR_YELLOW, COLOR_BLACK);
     init_pair(4, COLOR_RED, COLOR_BLACK);
@@ -53,7 +53,7 @@ int main() {
     fenetre = newwin(HAUTEUR, LARGEUR, POSY, POSX);
     box(fenetre, 0, 0);
 
-    mvwprintw(fenetre, 5, (LARGEUR/2) - strlen(texte)/2, texte);
+    mvwprintw(fenetre, 5, (int) ((LARGEUR / 2) - strlen(texte) / 2), texte);
     wrefresh(fenetre);
 
     carre1 = subwin(fenetre, hauteurCarre, largeurCarre, POSY + 15, POSX + ((LARGEUR/9) * 2) - (largeurCarre / 2));
@@ -115,7 +115,7 @@ int main() {
 
         if(couleur != -1) {
             wattron(fenetre, couleur);
-            mvwprintw(fenetre, 5, (LARGEUR/2) - strlen(texte)/2, texte);
+            mvwprintw(fenetre, 5, (int) ((LARGEUR / 2) - strlen(texte) / 2), texte);
             wattroff(fenetre, couleur);
 
             wrefresh(fenetre);
