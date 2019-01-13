@@ -36,7 +36,7 @@ CCLIBS = -lncurses
 all: msg $(OBJETS) $(EXEC_O)
 	@echo "Creation des executables..."
 	@for i in $(EXEC); do \
-	$(CC) -o $$i $$i.o $(OBJETS) $(CCLIBS); \
+	$(CC) -o $$i.out $$i.o $(OBJETS) $(CCLIBS); \
 	done
 	@echo "Termine."
 
@@ -84,7 +84,7 @@ ARCHIVE_FILES = *
 
 archive: clean
 	@echo "Creation de l'archive $(NOM_PROJET)$(shell date '+%y%m%d.tar.gz')..."
-	@REP=`basename "$$PWD"`; cd .. && tar zcf $(NOM_PROJET)$(shell date '+%y%m%d.tar.gz') $(addprefix "$$REP"/,$(ARCHIVE_FILES))
+	@REP=`basename "$$PWD"`; cd .. && tar zcf $(NOM_PROJET)_$(shell date '+%y%m%d.tar.gz') $(addprefix "$$REP"/,$(ARCHIVE_FILES))
 	@echo "Termine."
 
 # DEPENDANCES
