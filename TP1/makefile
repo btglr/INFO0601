@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = main main_1
+EXEC = main main_1 main_2
 OBJETS = ncurses.o
 NOM_PROJET = TP1
 
@@ -91,3 +91,4 @@ archive: clean
 ncurses.o: ncurses.c ncurses.h
 main.o: main.c ncurses.h
 main_1.o: main_1.c ncurses.h
+main_2.o: main_2.c ncurses.h
