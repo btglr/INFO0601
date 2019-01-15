@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = part1_q2 part1_q3
+EXEC = part1_q2 part1_q3 part2
 OBJETS = ncurses.o
 NOM_PROJET = TP1
 
@@ -91,3 +91,4 @@ archive: clean
 ncurses.o: ncurses.c ncurses.h
 part1_q2.o: part1_q2.c ncurses.h
 part1_q3.o: part1_q3.c ncurses.h
+part2.o: part2.c ncurses.h

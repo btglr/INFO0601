@@ -5,13 +5,11 @@
 
 #include "ncurses.h"
 
-#define LARGEUR 20 /* Largeur de la fenêtre */
-#define HAUTEUR 10 /* Hauteur de la fenêtre */
-#define POSX 20    /* Position horizontale de la fenêtre */
-#define POSY 5     /* Position verticale de la fenêtre */
+#define HAUTEUR 10
 
 int main() {
-    WINDOW* fenetre;
+    int i, mouseX, mouseY, cpt = 0;
+    WINDOW *borderInformationWindow, *borderClickWindow, *informationWindow, *clickWindow;
 
     /* Initialisation de ncurses */
     ncurses_initialiser();
@@ -21,16 +19,53 @@ int main() {
     init_pair(3, COLOR_CYAN, COLOR_BLACK);
     init_pair(4, COLOR_RED, COLOR_BLACK);
     init_pair(5, COLOR_GREEN, COLOR_BLACK);
+    init_pair(6, COLOR_BLACK, COLOR_YELLOW);
+    init_pair(7, COLOR_BLACK, COLOR_RED);
+    init_pair(8, COLOR_BLACK, COLOR_GREEN);
 
     clear();
     refresh();
     /* Création de la fenêtre */
-    fenetre = newwin(HAUTEUR, LARGEUR, POSY, POSX);
+    borderInformationWindow = newwin(HAUTEUR + 2, COLS, 0, 0);
+    box(borderInformationWindow, 0, 0);
+    borderClickWindow = newwin(HAUTEUR + 2, HAUTEUR + 2, HAUTEUR + 2, 0);
+    box(borderClickWindow, 0, 0);
 
-    /* Suppression de la fenêtre */
-    delwin(fenetre);
+    informationWindow = subwin(borderInformationWindow, HAUTEUR, COLS - 2, 1, 1);
+    scrollok(informationWindow, TRUE);
 
-    /* Arrêt de ncurses */
+    clickWindow = subwin(borderClickWindow, HAUTEUR, HAUTEUR, HAUTEUR + 3, 1);
+
+    wrefresh(borderInformationWindow);
+    wrefresh(borderClickWindow);
+    wrefresh(informationWindow);
+    wrefresh(clickWindow);
+
+    while ((i = getch()) != KEY_F(2)) {
+        if ((i == KEY_MOUSE) && (souris_getpos(&mouseX, &mouseY, NULL) == OK)) {
+            if(wmouse_trafo(clickWindow, &mouseY, &mouseX, FALSE) != FALSE) {
+                /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
+                if(cpt != 0)
+                    wprintw(informationWindow, "\n");
+
+                wprintw(informationWindow, "(%d, %d)", mouseX, mouseY);
+                wrefresh(informationWindow);
+
+                mvwaddch(clickWindow, mouseY, mouseX, 'X');
+                wrefresh(clickWindow);
+
+                cpt++;
+            }
+        }
+    }
+
+    /* Delete the windows */
+    delwin(clickWindow);
+    delwin(informationWindow);
+    delwin(borderClickWindow);
+    delwin(borderInformationWindow);
+
+    /* Stopping ncurses */
     ncurses_stopper();
 
     return EXIT_SUCCESS;
