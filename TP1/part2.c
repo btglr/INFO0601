@@ -11,8 +11,6 @@
 #define POSY 5     /* Position verticale de la fenêtre */
 
 int main() {
-    int i, color;
-    char* texte = "Bonjour";
     WINDOW* fenetre;
 
     /* Initialisation de ncurses */
