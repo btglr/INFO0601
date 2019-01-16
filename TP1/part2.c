@@ -6,12 +6,14 @@
 #include "ncurses.h"
 
 #define HAUTEUR 10
+#define LARGEUR 10
+#define POSY 10
 
 int main() {
     int i, mouseX, mouseY, cpt = 0;
     WINDOW *borderInformationWindow, *borderClickWindow, *informationWindow, *clickWindow;
 
-    /* Initialisation de ncurses */
+    /* Initializing ncurses */
     ncurses_initialiser();
     ncurses_souris();
     ncurses_couleurs();
@@ -25,16 +27,16 @@ int main() {
 
     clear();
     refresh();
-    /* Création de la fenêtre */
+    /* Creating the windows */
     borderInformationWindow = newwin(HAUTEUR + 2, COLS, 0, 0);
     box(borderInformationWindow, 0, 0);
-    borderClickWindow = newwin(HAUTEUR + 2, HAUTEUR + 2, HAUTEUR + 2, 0);
+    borderClickWindow = newwin(HAUTEUR + 2, LARGEUR + 2, POSY + 2, 0);
     box(borderClickWindow, 0, 0);
 
     informationWindow = subwin(borderInformationWindow, HAUTEUR, COLS - 2, 1, 1);
     scrollok(informationWindow, TRUE);
 
-    clickWindow = subwin(borderClickWindow, HAUTEUR, HAUTEUR, HAUTEUR + 3, 1);
+    clickWindow = subwin(borderClickWindow, HAUTEUR, LARGEUR, POSY + 3, 1);
 
     wrefresh(borderInformationWindow);
     wrefresh(borderClickWindow);
@@ -59,7 +61,7 @@ int main() {
         }
     }
 
-    /* Delete the windows */
+    /* Deleting the windows */
     delwin(clickWindow);
     delwin(informationWindow);
     delwin(borderClickWindow);
