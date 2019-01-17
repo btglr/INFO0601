@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = part1 part1_q3
+EXEC = part1 part1_q3 part1_q4
 OBJETS = 
 NOM_PROJET = TP1
 
@@ -92,3 +92,4 @@ archive: clean
 # DEPENDANCES
 part1.o: part1.c
 part1_q3.o: part1_q3.c
+part1_q4.o: part1_q4.c
