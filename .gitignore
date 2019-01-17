@@ -4,6 +4,7 @@
 
 *.o
 *.out
+*.bin
 .vscode
 .history
 .idea
