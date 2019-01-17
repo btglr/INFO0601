@@ -8,7 +8,7 @@
 int main(int argc, char* argv[]) {
     int i, fd;
     off_t filesize;
-    char fileName[255];
+    char fileName[256];
 
     if (argc == 2) {
         for (i = 0; argv[1][i] != '\0'; ++i) {
@@ -32,19 +32,16 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
+    else {
+        printf("The file exists\n");
+    }
+
     if ((filesize = lseek(fd, 0L, SEEK_END)) == -1) {
-        perror("An error occurred while seeking file");
+        perror("An error occurred while seeking the file");
         exit(EXIT_FAILURE);
     }
 
-    printf("File size: %ld\n", filesize);
-
-/*     while ((bytesRead = read(fd, buffer, 255)) != 0) {
-        printf("Bytes read: %d\n", bytesRead);
-        totalBytes += bytesRead;
-    }
-
-    printf("Total bytes: %d\n", totalBytes); */
+    printf("File size: %ld octets\n", filesize);
 
     if (close(fd) == -1) {
         perror("An error occured while closing the file");
