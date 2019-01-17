@@ -58,10 +58,12 @@ debug: all
 #
 
 clean:
-	@echo "Suppresion des objets, des fichiers temporaires..."
+	@echo "Suppression des objets, des fichiers temporaires..."
 	@rm -f $(OBJETS) $(EXEC_O)
 	@rm -f *~ *#
-	@rm -f $(EXEC)
+	@for i in $(EXEC); do \
+	rm -rf $$i.out; \
+	done
 	@rm -f dependances
 	@echo "Termine."
 

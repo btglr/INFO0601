@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = part1
+EXEC = part1 part1_q3
 OBJETS = 
 NOM_PROJET = TP1
 
@@ -61,7 +61,9 @@ clean:
 	@echo "Suppression des objets, des fichiers temporaires..."
 	@rm -f $(OBJETS) $(EXEC_O)
 	@rm -f *~ *#
-	@rm -f $(EXEC)
+	@for i in $(EXEC); do \
+	rm -rf $$i.out; \
+	done
 	@rm -f dependances
 	@echo "Termine."
 
@@ -89,3 +91,4 @@ archive: clean
 
 # DEPENDANCES
 part1.o: part1.c
+part1_q3.o: part1_q3.c
