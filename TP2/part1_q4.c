@@ -40,12 +40,14 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    length = strlen(buffer);
-    
-    buffer[length] = '\n';
-    buffer[length + 1] = '\0';
+    length = strlen(buffer) + 1;
 
-    if (write(fd, buffer, length + 1) == -1) {
+    if (write(fd, &length, sizeof(int)) == -1) {
+        perror("An error occurred while writing the file");
+        exit(EXIT_FAILURE);
+    }
+
+    if (write(fd, buffer, sizeof(char) * length) == -1) {
         perror("An error occurred while writing the file");
         exit(EXIT_FAILURE);
     }
@@ -56,12 +58,16 @@ int main(int argc, char* argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    printf("\nLecture des données:\n\n");
-    while ((bytesRead = read(fd, buffer, 256)) > 0) {
-        for (i = 0; i < bytesRead; ++i) {
-            printf("%c", buffer[i]);
+    while ((bytesRead = read(fd, &length, sizeof(int))) > 0) {
+        if ((bytesRead = read(fd, buffer, length)) > 0) {
+            printf("%s\n", buffer);
         }
-    }
+
+        else {
+            perror("An error occurred while reading the file");
+            exit(EXIT_FAILURE);
+        }
+    } 
 
     if (bytesRead == -1) {
         perror("An error occurred while reading the file");
@@ -69,7 +75,7 @@ int main(int argc, char* argv[]) {
     }
 
     if (close(fd) == -1) {
-        perror("An error occured while closing the file");
+        perror("An error occurred while closing the file");
         exit(EXIT_FAILURE);
     }
 
