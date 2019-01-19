@@ -7,15 +7,17 @@
 #include "ncurses.h"
 #include "windowDrawer.h"
 
-#define BORDER_STATE_WINDOW_WIDTH 20 * SQUARE_WIDTH
-#define BORDER_STATE_WINDOW_HEIGHT 10
-#define BORDER_INFORMATION_WINDOW_WIDTH MAP_WIDTH * SQUARE_WIDTH + BORDER_STATE_WINDOW_WIDTH
-#define BORDER_INFORMATION_WINDOW_HEIGHT 6
-#define BORDER_GAME_WINDOW_WIDTH MAP_WIDTH * SQUARE_WIDTH
-#define BORDER_GAME_WINDOW_HEIGHT MAP_HEIGHT
+#define BORDER_WIDTH 2
+#define BORDER_HEIGHT 2
+#define BORDER_STATE_WINDOW_WIDTH 20 * SQUARE_WIDTH + BORDER_WIDTH
+#define BORDER_STATE_WINDOW_HEIGHT 8 + BORDER_HEIGHT
+#define BORDER_INFORMATION_WINDOW_WIDTH MAP_WIDTH * SQUARE_WIDTH + BORDER_STATE_WINDOW_WIDTH + BORDER_WIDTH
+#define BORDER_INFORMATION_WINDOW_HEIGHT 4 + BORDER_HEIGHT
+#define BORDER_GAME_WINDOW_WIDTH MAP_WIDTH * SQUARE_WIDTH + BORDER_WIDTH
+#define BORDER_GAME_WINDOW_HEIGHT MAP_HEIGHT + BORDER_HEIGHT
 
 int main(int argc, char *argv[]) {
-    int i, fd, mouseX, mouseY, added, cpt = 0;
+    int i, fd, mouseX, mouseY, added, relativeXPosition, cpt = 0;
     /*int playerColor, discoveredWallColor, visibleWallColor, trailColor;*/
     char fileName[256];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
@@ -49,10 +51,10 @@ int main(int argc, char *argv[]) {
     discoveredWallColor = addColor(COLOR_BLACK, COLOR_DISCOVERED_WALL);
     visibleWallColor = addColor(COLOR_BLACK, COLOR_VISIBLE_WALL);
     trailColor = addColor(COLOR_BLACK, COLOR_EMPTY_SQUARE);*/
-    addColor(COLOR_BLACK, COLOR_PLAYER);
-    addColor(COLOR_BLACK, COLOR_DISCOVERED_WALL);
-    addColor(COLOR_BLACK, COLOR_VISIBLE_WALL);
-    addColor(COLOR_BLACK, COLOR_EMPTY_SQUARE);
+    addColor(COLOR_PLAYER, COLOR_PLAYER);
+    addColor(COLOR_DISCOVERED_WALL, COLOR_DISCOVERED_WALL);
+    addColor(COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
+    addColor(COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
 
     borderInformationWindow = initializeWindow(
             BORDER_INFORMATION_WINDOW_WIDTH,
@@ -116,16 +118,21 @@ int main(int argc, char *argv[]) {
         if ((i == KEY_MOUSE) && (souris_getpos(&mouseX, &mouseY, NULL) == OK)) {
             if(wmouse_trafo(gameWindow, &mouseY, &mouseX, FALSE) != FALSE) {
                 /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
+
+                /* Get the relative x position (depends on SQUARE_WIDTH) */
+                relativeXPosition = mouseX / SQUARE_WIDTH;
+                /*relativeXPosition = (mouseX % SQUARE_WIDTH == 0) ? (mouseX / SQUARE_WIDTH + 1) : (mouseX / SQUARE_WIDTH) + ((mouseX % SQUARE_WIDTH) != 0);*/
+
                 if(cpt != 0)
                     wprintw(informationWindow, "\n");
 
-                added = setWall(fd, VISIBLE_WALL, mouseX, mouseY);
+                added = setWall(fd, VISIBLE_WALL, relativeXPosition, mouseY);
 
-                if(added) {
-                    wprintw(informationWindow, "Added a wall at (%d, %d)", mouseX, mouseY);
+                if(added > 0) {
+                    wprintw(informationWindow, "Added a wall at (%d, %d)", relativeXPosition, mouseY, mouseX, mouseY);
                     wrefresh(informationWindow);
 
-                    drawSquare(gameWindow, VISIBLE_WALL, mouseX, mouseY, true);
+                    drawSquare(gameWindow, VISIBLE_WALL, relativeXPosition * SQUARE_WIDTH, mouseY, true);
                     cpt++;
                 }
             }
