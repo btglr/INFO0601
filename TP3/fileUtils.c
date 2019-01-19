@@ -24,11 +24,15 @@ void seekFile(int fd, off_t offset, int from) {
  * @param buf The buffer containing the data to write
  * @param length The length of the data to write
  */
-void writeFile(int fd, void *buf, size_t length) {
-    if (write(fd, buf, length) == -1) {
+ssize_t writeFile(int fd, void *buf, size_t length) {
+    ssize_t bytesWritten;
+
+    if ((bytesWritten = write(fd, buf, length)) == -1) {
         perror("An error occurred while writing the file");
         exit(EXIT_FAILURE);
     }
+
+    return bytesWritten;
 }
 
 /**
@@ -38,9 +42,9 @@ void writeFile(int fd, void *buf, size_t length) {
  * @param offset The offset which we want to seek to
  * @param length The length of the data to write
  */
-void writeFileOff(int fd, void *buf, off_t offset, size_t length) {
+ssize_t writeFileOff(int fd, void *buf, off_t offset, size_t length) {
     seekFile(fd, offset, SEEK_SET);
-    writeFile(fd, buf, length);
+    return writeFile(fd, buf, length);
 }
 
 /**
