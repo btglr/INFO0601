@@ -15,7 +15,7 @@
 #define BORDER_GAME_WINDOW_HEIGHT MAP_HEIGHT
 
 int main(int argc, char *argv[]) {
-    int i, fd;
+    int i, fd, mouseX, mouseY, added, cpt = 0;
     /*int playerColor, discoveredWallColor, visibleWallColor, trailColor;*/
     char fileName[256];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
@@ -85,6 +85,8 @@ int main(int argc, char *argv[]) {
             BORDER_GAME_WINDOW_WIDTH + 1,
             BORDER_INFORMATION_WINDOW_HEIGHT + 1);
 
+    scrollok(informationWindow, true);
+
     box(borderInformationWindow, 0, 0);
     box(borderGameWindow, 0, 0);
     box(borderStateWindow, 0, 0);
@@ -111,7 +113,23 @@ int main(int argc, char *argv[]) {
     drawMap(gameWindow, fd);
 
     while ((i = getch()) != KEY_F(2)) {
+        if ((i == KEY_MOUSE) && (souris_getpos(&mouseX, &mouseY, NULL) == OK)) {
+            if(wmouse_trafo(gameWindow, &mouseY, &mouseX, FALSE) != FALSE) {
+                /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
+                if(cpt != 0)
+                    wprintw(informationWindow, "\n");
 
+                added = setWall(fd, VISIBLE_WALL, mouseX, mouseY);
+
+                if(added) {
+                    wprintw(informationWindow, "Added a wall at (%d, %d)", mouseX, mouseY);
+                    wrefresh(informationWindow);
+
+                    drawSquare(gameWindow, VISIBLE_WALL, mouseX, mouseY, true);
+                    cpt++;
+                }
+            }
+        }
     }
 
     closeFile(fd);
