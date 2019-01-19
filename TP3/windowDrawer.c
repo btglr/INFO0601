@@ -16,7 +16,7 @@ WINDOW* initializeWindow(int width, int height, int x, int y) {
 }
 
 WINDOW *initializeSubWindow(WINDOW *window, int width, int height, int x, int y) {
-    // TODO Bug when drawing a new map (file just created)
+    /* TODO Bug when drawing a new map (file just created) */
 
     return subwin(window, height, width, y, x);
 }
