@@ -23,6 +23,7 @@ void seekFile(int fd, off_t offset, int from) {
  * @param fd A file descriptor
  * @param buf The buffer containing the data to write
  * @param length The length of the data to write
+ * @return The number of bytes successfully written
  */
 ssize_t writeFile(int fd, void *buf, size_t length) {
     ssize_t bytesWritten;
@@ -41,6 +42,7 @@ ssize_t writeFile(int fd, void *buf, size_t length) {
  * @param buf The buffer containing the data to write
  * @param offset The offset which we want to seek to
  * @param length The length of the data to write
+ * @return The number of bytes successfully written
  */
 ssize_t writeFileOff(int fd, void *buf, off_t offset, size_t length) {
     seekFile(fd, offset, SEEK_SET);
