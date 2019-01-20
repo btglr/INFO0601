@@ -2,8 +2,28 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <fcntl.h>
 #include "fileUtils.h"
 #include "mapEditor.h"
+#include <stdarg.h>
+
+int openFile(char *filename, int flags, ...) {
+    va_list va;
+    mode_t mode;
+    int fd;
+
+    va_start(va, flags);
+    mode = va_arg(va, mode_t);
+
+    if ((fd = open(filename, flags, mode)) == -1) {
+        perror("An error occurred while trying to open a file");
+        exit(EXIT_FAILURE);
+    }
+
+    va_end(va);
+
+    return fd;
+}
 
 /**
  * Seeks into a file and sets the cursor to the specified offset
