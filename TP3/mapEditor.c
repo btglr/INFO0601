@@ -4,8 +4,11 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <curses.h>
+#include <string.h>
 #include "mapEditor.h"
 #include "fileUtils.h"
+#include "constants.h"
 
 /**
  * Initializes a new map with a default number of lives, a map version and all the squares as 0
@@ -19,6 +22,9 @@ void initializeMap(int fd) {
     for (i = 0; i < MAP_WIDTH * MAP_HEIGHT; ++i) {
         buffer[i] = EMPTY_SQUARE;
     }
+
+    /* Set the entrance to a visited square so it is clearly identified */
+    buffer[Y_POS_BEGINNING * MAP_WIDTH + X_POS_BEGINNING] = VISITED_SQUARE;
 
     mapVersion = 1;
     lives = DEFAULT_LIVES;
@@ -57,36 +63,143 @@ int loadMap(char *mapName) {
 }
 
 int changeWall(int fd, int x, int y) {
+    unsigned char originalType, type;
     /* Map version + number of lives */
-    unsigned char type;
     int initialPadding = sizeof(int) + sizeof(unsigned char);
-    int offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
+    int offset, res;
 
-    readFileOff(fd, &type, offset, sizeof(unsigned char));
+    /* If the given coordinates are within the map */
+    if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT)) {
+        offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
 
-    switch(type) {
-        case EMPTY_SQUARE:
-            type = INVISIBLE_WALL;
-            break;
+        readFileOff(fd, &originalType, offset, sizeof(unsigned char));
 
-        case INVISIBLE_WALL:
-            type = VISIBLE_WALL;
-            break;
+        switch(originalType) {
+            case EMPTY_SQUARE:
+                type = INVISIBLE_WALL;
+                break;
 
-        case VISIBLE_WALL:
-            type = EMPTY_SQUARE;
-            break;
+            case INVISIBLE_WALL:
+                type = VISIBLE_WALL;
+                break;
 
-        default:
-            printf("Unsupported wall type");
+            case VISIBLE_WALL:
+                type = EMPTY_SQUARE;
+                break;
+
+            case VISITED_SQUARE:
+            default:
+                type = originalType;
+        }
+
+        /* If the coordinates aren't corresponding to the entry or exit we write the type to the corresponding position */
+        if ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END)) {
+            writeFileOff(fd, &type, offset, sizeof(unsigned char));
+            res = type;
+        }
+
+        else {
+            res = -1;
+        }
     }
 
-    /* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position */
-    if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END))) {
-        writeFileOff(fd, &type, offset, sizeof(unsigned char));
+    else {
+        res = -1;
     }
 
-    return type;
+    return res;
+}
+
+void updateWallCount(WINDOW *window, int fd) {
+    updateStateWindow(window, 1, 2, "Walls: ", getWallCount(fd));
+}
+
+void updateLivesCount(WINDOW *window, int fd) {
+    updateStateWindow(window, 1, 1, "Lives: ", getLives(fd));
+}
+
+void decreaseLives(int fd) {
+    unsigned char lives = getLives(fd);
+
+    if(lives > 0) {
+        lives--;
+        writeFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+    }
+}
+
+void increaseLives(int fd) {
+    unsigned char lives = getLives(fd);
+
+    if (lives < 255) {
+        lives++;
+        writeFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+    }
+}
+
+int getWallCount(int fd) {
+    int i, wallCount = 0;
+    int initialPadding = sizeof(int) + sizeof(unsigned char);
+    ssize_t bytesRead;
+    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
+
+    bytesRead = readFileOff(fd, buffer, initialPadding, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
+
+    for(i = 0; i < bytesRead; ++i) {
+        wallCount = (buffer[i] == VISIBLE_WALL || buffer[i] == INVISIBLE_WALL) ? wallCount + 1 : wallCount;
+    }
+
+    return wallCount;
+}
+
+unsigned char getLives(int fd) {
+    unsigned char lives;
+
+    readFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+
+    return lives;
+}
+
+void loadStateWindow(WINDOW *window, int fd) {
+    updateStateWindow(window, 1, 1, "Lives: ", getLives(fd));
+    updateStateWindow(window, 1, 2, "Walls: ", getWallCount(fd));
+
+    wattron(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
+    mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X + 1, ACS_PLUS | WA_BOLD);
+    mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X + 2, ACS_HLINE | WA_BOLD);
+    wattroff(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
+
+    wattron(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
+    mvwaddch(window, MINUS_SIGN_POS_Y, MINUS_SIGN_POS_X, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, MINUS_SIGN_POS_Y, MINUS_SIGN_POS_X + 1, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, MINUS_SIGN_POS_Y, MINUS_SIGN_POS_X + 2, ACS_HLINE | WA_BOLD);
+    wattroff(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
+
+    wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
+    mvwprintw(window, 4, 1, "  ");
+    wattroff(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
+    mvwprintw(window, 4, 4, "Visible wall");
+
+    wattron(window, COLOR_PAIR(PAIR_COLOR_INVISIBLE_WALL));
+    mvwprintw(window, 5, 1, "  ");
+    wattroff(window, COLOR_PAIR(PAIR_COLOR_INVISIBLE_WALL));
+    mvwprintw(window, 5, 4, "Invisible wall");
+
+    mvwprintw(window, 6, 1, "E ");
+    mvwprintw(window, 6, 4, "Exit");
+
+    wrefresh(window);
+}
+
+void updateStateWindow(WINDOW *window, int x, int y, char *s, int value) {
+    size_t length = strlen(s);
+
+    mvwprintw(window, y, x, s);
+
+    /* Print additional spaces to clear any remaining numbers */
+    mvwprintw(window, y, (int) (x + length), "%d  ", value);
+
+    wrefresh(window);
 }
 
 int setWall(int fd, unsigned char type, int x, int y) {
