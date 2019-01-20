@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = main
+EXEC = editor game
 OBJETS = ncurses.o fileUtils.o ncursesUtils.o gameManager.o windowDrawer.o mapEditor.o
 NOM_PROJET = TP1
 
@@ -97,5 +97,6 @@ gameManager.o: gameManager.c gameManager.h
 windowDrawer.o: windowDrawer.c windowDrawer.h mapEditor.h ncurses.h \
  fileUtils.h
 mapEditor.o: mapEditor.c mapEditor.h fileUtils.h
-main.o: main.c mapEditor.h fileUtils.h ncursesUtils.h ncurses.h \
+editor.o: editor.c mapEditor.h fileUtils.h ncursesUtils.h ncurses.h \
  windowDrawer.h
+game.o: game.c
