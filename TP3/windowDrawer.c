@@ -24,27 +24,35 @@ WINDOW *initializeSubWindow(WINDOW *window, int width, int height, int x, int y)
 }
 
 void drawWall(WINDOW *window, int type, int x, int y, bool refresh) {
+    int i;
     chtype color;
 
     switch(type) {
-        case VISIBLE_WALL:
-            color = COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL);
-            break;
-
         case INVISIBLE_WALL:
             color = COLOR_PAIR(PAIR_COLOR_INVISIBLE_WALL);
+            break;
+
+        case VISIBLE_WALL:
+            color = COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL);
             break;
 
         case DISCOVERED_WALL:
             color = COLOR_PAIR(PAIR_COLOR_DISCOVERED_WALL);
             break;
 
+        case VISITED_SQUARE:
+            color = COLOR_PAIR(PAIR_COLOR_VISITED_SQUARE);
+            break;
+
+        case EMPTY_SQUARE:
         default:
-            color = COLOR_PAIR(1);
+            color = COLOR_PAIR(PAIR_COLOR_EMPTY_SQUARE);
     }
 
     wattron(window, color);
-    mvwprintw(window, y, x, "  ");
+    for(i = 0; i < SQUARE_WIDTH; ++i) {
+        mvwaddch(window, y, x + i, ' ');
+    }
     wattroff(window, color);
 
     if(refresh) {
@@ -65,6 +73,8 @@ void drawMap(WINDOW *window, int fd) {
 
         drawWall(window, buffer[i], x, y, false);
     }
+
+    mvwaddch(window, Y_POS_END, X_POS_END * SQUARE_WIDTH, 'E');
 
     wrefresh(window);
 }
