@@ -6,20 +6,10 @@
 #include "ncursesUtils.h"
 #include "ncurses.h"
 #include "windowDrawer.h"
-
-#define BORDER_WIDTH 2
-#define BORDER_HEIGHT 2
-#define BORDER_STATE_WINDOW_WIDTH 20 * SQUARE_WIDTH + BORDER_WIDTH
-#define BORDER_STATE_WINDOW_HEIGHT 8 + BORDER_HEIGHT
-#define BORDER_INFORMATION_WINDOW_WIDTH MAP_WIDTH * SQUARE_WIDTH + BORDER_STATE_WINDOW_WIDTH + BORDER_WIDTH
-#define BORDER_INFORMATION_WINDOW_HEIGHT 4 + BORDER_HEIGHT
-#define BORDER_GAME_WINDOW_WIDTH MAP_WIDTH * SQUARE_WIDTH + BORDER_WIDTH
-#define BORDER_GAME_WINDOW_HEIGHT MAP_HEIGHT + BORDER_HEIGHT
+#include "constants.h"
 
 int main(int argc, char *argv[]) {
     int i, fd, mouseX, mouseY, type, relativeXPosition, cpt = 0;
-    unsigned char lives;
-    /*int playerColor, discoveredWallColor, visibleWallColor, trailColor;*/
     char filename[256];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
@@ -48,17 +38,12 @@ int main(int argc, char *argv[]) {
     clear();
     refresh();
 
-/*    playerColor = addColor(COLOR_BLACK, COLOR_PLAYER);
-    discoveredWallColor = addColor(COLOR_BLACK, COLOR_DISCOVERED_WALL);
-    visibleWallColor = addColor(COLOR_BLACK, COLOR_VISIBLE_WALL);
-    trailColor = addColor(COLOR_BLACK, COLOR_EMPTY_SQUARE);*/
-    addColor(COLOR_PLAYER, COLOR_PLAYER);
-    addColor(COLOR_DISCOVERED_WALL, COLOR_DISCOVERED_WALL);
-    addColor(COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
-    addColor(COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
-    addColor(COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);
-    addColor(COLOR_GREEN, COLOR_BLACK);
-    addColor(COLOR_RED, COLOR_BLACK);
+    init_pair(PAIR_COLOR_PLAYER, COLOR_PLAYER, COLOR_PLAYER);
+    init_pair(PAIR_COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
+    init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);
+    init_pair(PAIR_COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
+    init_pair(PAIR_COLOR_PLUS_SIGN, COLOR_GREEN, COLOR_BLACK);
+    init_pair(PAIR_COLOR_MINUS_SIGN, COLOR_RED, COLOR_BLACK);
 
     borderInformationWindow = initializeWindow(
             BORDER_INFORMATION_WINDOW_WIDTH,
@@ -110,22 +95,8 @@ int main(int argc, char *argv[]) {
 
     fd = loadMap(filename);
 
-    readFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
-
-    mvwprintw(stateWindow, 1, 1, "Lives: %d", lives);
-    wattron(stateWindow, COLOR_PAIR(8));
-    mvwaddch(stateWindow, 1, 12, ACS_HLINE | WA_BOLD);
-    mvwaddch(stateWindow, 1, 13, ACS_PLUS | WA_BOLD);
-    mvwaddch(stateWindow, 1, 14, ACS_HLINE | WA_BOLD);
-    wattroff(stateWindow, COLOR_PAIR(8));
-    wattron(stateWindow, COLOR_PAIR(9));
-    mvwaddch(stateWindow, 1, 18, ACS_HLINE | WA_BOLD);
-    mvwaddch(stateWindow, 1, 19, ACS_HLINE | WA_BOLD);
-    mvwaddch(stateWindow, 1, 20, ACS_HLINE | WA_BOLD);
-    wattroff(stateWindow, COLOR_PAIR(9));
-    wrefresh(stateWindow);
-
     drawMap(gameWindow, fd);
+    loadStateWindow(stateWindow, fd);
 
     while ((i = getch()) != KEY_F(2)) {
         if ((i == KEY_MOUSE) && (souris_getpos(&mouseX, &mouseY, NULL) == OK)) {
@@ -143,6 +114,18 @@ int main(int argc, char *argv[]) {
                 wrefresh(informationWindow);
 
                 drawWall(gameWindow, type, relativeXPosition * SQUARE_WIDTH, mouseY, true);
+                cpt++;
+            }
+
+            /* Click was in the state window */
+            else if(wmouse_trafo(stateWindow, &mouseY, &mouseX, FALSE) != FALSE) {
+                if(cpt != 0)
+                    wprintw(informationWindow, "\n");
+
+                wprintw(informationWindow, "Added a life");
+                wrefresh(informationWindow);
+
+                updateStateWindow(stateWindow, 1, 8, "11");
                 cpt++;
             }
         }
