@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
     init_pair(PAIR_COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
     init_pair(PAIR_COLOR_PLUS_SIGN, COLOR_GREEN, COLOR_BLACK);
     init_pair(PAIR_COLOR_MINUS_SIGN, COLOR_RED, COLOR_BLACK);
+    init_pair(PAIR_COLOR_VISITED_SQUARE, COLOR_VISITED_SQUARE, COLOR_VISITED_SQUARE);
 
     borderInformationWindow = initializeWindow(
             BORDER_INFORMATION_WINDOW_WIDTH,
@@ -110,11 +111,17 @@ int main(int argc, char *argv[]) {
 
                 type = changeWall(fd, relativeXPosition, mouseY);
 
-                wprintw(informationWindow, "Changed a wall at (%d, %d)", relativeXPosition, mouseY);
-                wrefresh(informationWindow);
+                if(type >= 0) {
+                    wprintw(informationWindow, "Changed a wall at (%d, %d)", relativeXPosition, mouseY);
+                    wrefresh(informationWindow);
+                    drawWall(gameWindow, type, relativeXPosition * SQUARE_WIDTH, mouseY, true);
 
-                drawWall(gameWindow, type, relativeXPosition * SQUARE_WIDTH, mouseY, true);
-                cpt++;
+                    if(type == EMPTY_SQUARE || type == INVISIBLE_WALL) {
+                        updateWallCount(stateWindow, fd);
+                    }
+
+                    cpt++;
+                }
             }
 
             /* Click was in the state window */
@@ -122,10 +129,19 @@ int main(int argc, char *argv[]) {
                 if(cpt != 0)
                     wprintw(informationWindow, "\n");
 
-                wprintw(informationWindow, "Added a life");
-                wrefresh(informationWindow);
+                if (mouseX >= PLUS_SIGN_POS_X && mouseX <= PLUS_SIGN_POS_X + 2 && mouseY == PLUS_SIGN_POS_Y) {
+                    wprintw(informationWindow, "Added a life");
+                    increaseLives(fd);
+                }
 
-                updateStateWindow(stateWindow, 1, 8, "11");
+                else if (mouseX >= MINUS_SIGN_POS_X && mouseX <= MINUS_SIGN_POS_X + 2 && mouseY == MINUS_SIGN_POS_Y) {
+                    wprintw(informationWindow, "Removed a life");
+                    decreaseLives(fd);
+                }
+
+                wrefresh(informationWindow);
+                updateLivesCount(stateWindow, fd);
+
                 cpt++;
             }
         }
