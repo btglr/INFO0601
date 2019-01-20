@@ -91,12 +91,12 @@ archive: clean
 
 # DEPENDANCES
 ncurses.o: ncurses.c ncurses.h
-fileUtils.o: fileUtils.c fileUtils.h mapEditor.h
+fileUtils.o: fileUtils.c fileUtils.h
 ncursesUtils.o: ncursesUtils.c ncursesUtils.h
 gameManager.o: gameManager.c gameManager.h
 windowDrawer.o: windowDrawer.c windowDrawer.h mapEditor.h ncurses.h \
- fileUtils.h
-mapEditor.o: mapEditor.c mapEditor.h fileUtils.h
+ fileUtils.h constants.h
+mapEditor.o: mapEditor.c mapEditor.h fileUtils.h constants.h
 editor.o: editor.c mapEditor.h fileUtils.h ncursesUtils.h ncurses.h \
- windowDrawer.h
+ windowDrawer.h constants.h
 game.o: game.c
