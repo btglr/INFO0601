@@ -1,5 +1,6 @@
 #include <curses.h>
 #include <stdlib.h>
+#include <fcntl.h>
 #include "windowDrawer.h"
 #include "mapEditor.h"
 #include "ncurses.h"
@@ -21,12 +22,16 @@ WINDOW *initializeSubWindow(WINDOW *window, int width, int height, int x, int y)
     return subwin(window, height, width, y, x);
 }
 
-void drawSquare(WINDOW *window, int type, int x, int y, bool refresh) {
+void drawWall(WINDOW *window, int type, int x, int y, bool refresh) {
     chtype color;
 
     switch(type) {
         case VISIBLE_WALL:
             color = COLOR_PAIR(5);
+            break;
+
+        case INVISIBLE_WALL:
+            color = COLOR_PAIR(7);
             break;
 
         case DISCOVERED_WALL:
@@ -57,24 +62,7 @@ void drawMap(WINDOW *window, int fd) {
         x = (i % MAP_WIDTH) * SQUARE_WIDTH;
         y = i / MAP_WIDTH;
 
-        drawSquare(window, buffer[i], x, y, false);
-
-        /*switch (buffer[i]) {
-            case VISIBLE_WALL:
-                color = COLOR_PAIR(5);
-                break;
-
-            case DISCOVERED_WALL:
-                color = COLOR_PAIR(4);
-                break;
-
-            default:
-                color = COLOR_PAIR(1);
-        }
-
-        wattron(window, color);
-        mvwprintw(window, y, x, "  ");
-        wattroff(window, color);*/
+        drawWall(window, buffer[i], x, y, false);
     }
 
     wrefresh(window);
