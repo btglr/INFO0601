@@ -5,6 +5,7 @@
 #include "mapEditor.h"
 #include "ncurses.h"
 #include "fileUtils.h"
+#include "constants.h"
 
 WINDOW* initializeWindow(int width, int height, int x, int y) {
     if ((COLS < x + width) || (LINES < y + height)) {
@@ -27,15 +28,15 @@ void drawWall(WINDOW *window, int type, int x, int y, bool refresh) {
 
     switch(type) {
         case VISIBLE_WALL:
-            color = COLOR_PAIR(5);
+            color = COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL);
             break;
 
         case INVISIBLE_WALL:
-            color = COLOR_PAIR(7);
+            color = COLOR_PAIR(PAIR_COLOR_INVISIBLE_WALL);
             break;
 
         case DISCOVERED_WALL:
-            color = COLOR_PAIR(4);
+            color = COLOR_PAIR(PAIR_COLOR_DISCOVERED_WALL);
             break;
 
         default:
