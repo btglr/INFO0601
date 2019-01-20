@@ -4,9 +4,15 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "fileUtils.h"
-#include "mapEditor.h"
 #include <stdarg.h>
 
+/**
+ * Opens a file with the given filename
+ * @param filename The file name
+ * @param flags The flags with which to open the file (O_RDWR, ...)
+ * @param ... Optionally, the mode of the file (S_IRWXU, ...)
+ * @return A file descriptor corresponding to the opened file
+ */
 int openFile(char *filename, int flags, ...) {
     va_list va;
     mode_t mode;
@@ -104,31 +110,6 @@ ssize_t readFileOff(int fd, void *buf, off_t offset, size_t length) {
     seekFile(fd, offset, SEEK_SET);
     return readFile(fd, buf, length);
 }
-
-/*void test(int fd) {
-    int i, mapVersion;
-    unsigned char lives;
-    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
-
-    *//* Temp, reads the map's content and displays it *//*
-
-    seekFile(fd, 0, SEEK_SET);
-    readFile(fd, &mapVersion, sizeof(int));
-    readFile(fd, &lives, sizeof(unsigned char));
-    readFile(fd, buffer, sizeof(unsigned char) * MAP_WIDTH * MAP_HEIGHT);
-
-    printf("Map version: %d\n", mapVersion);
-    printf("Number of lives: %d\n", lives);
-
-    for(i = 0; i < MAP_WIDTH * MAP_HEIGHT; ++i) {
-        if(i % 30 == 0) {
-            printf("\n");
-        }
-
-        printf("%d ", buffer[i]);
-    }
-    printf("\n");
-}*/
 
 /**
  * Closes a file
