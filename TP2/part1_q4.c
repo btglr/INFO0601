@@ -8,8 +8,7 @@
 
 int main(int argc, char* argv[]) {
     int i, fd, bytesRead, length = 0;
-    char fileName[256];
-    char buffer[256];
+    char fileName[256], buffer[256], c;
 
     if (argc == 2) {
         for (i = 0; argv[1][i] != '\0'; ++i) {
@@ -26,6 +25,8 @@ int main(int argc, char* argv[]) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
+
+        while (((c = getchar()) != '\n') || (c == EOF));
     }
 
     if ((fd = open(fileName, O_RDWR | O_CREAT | O_APPEND, S_IRWXU)) == -1) {
