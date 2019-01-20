@@ -15,11 +15,13 @@
 #define SQUARE_WIDTH 2 /* How big should a square's width be, in characters */
 #define COLOR_EMPTY_SQUARE COLOR_WHITE
 #define COLOR_VISIBLE_WALL COLOR_BLUE
+#define COLOR_INVISIBLE_WALL COLOR_MAGENTA
 #define COLOR_DISCOVERED_WALL COLOR_RED
 #define COLOR_PLAYER COLOR_GREEN
 
 void initializeMap(int fd);
 int loadMap(char *mapName);
+int changeWall(int fd, int x, int y);
 int setWall(int fd, unsigned char type, int x, int y);
 
 #endif

@@ -35,22 +35,58 @@ void initializeMap(int fd) {
 int loadMap(char *mapName) {
     int fd;
 
-    if ((fd = open(mapName, O_RDWR | O_CREAT | O_EXCL, S_IRWXU)) != -1) {
-        /* Create empty map */
-        printf("Creating new map file\n");
-        initializeMap(fd);
-    }
+    fd = open(mapName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
-    else if (errno == EEXIST && (fd = open(mapName, O_RDWR, S_IRWXU)) != -1) {
-        /* Map file already exists, reading it */
+    if (fd == -1) {
+        if(errno == EEXIST) {
+            fd = openFile(mapName, O_RDWR);
+        }
+
+        else {
+            perror("An error occurred while trying to open a file");
+            exit(EXIT_FAILURE);
+        }
     }
 
     else {
-        perror("An error occurred while trying to open a file");
-        exit(EXIT_FAILURE);
+        /* Create empty map */
+        initializeMap(fd);
     }
 
     return fd;
+}
+
+int changeWall(int fd, int x, int y) {
+    /* Map version + number of lives */
+    unsigned char type;
+    int initialPadding = sizeof(int) + sizeof(unsigned char);
+    int offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
+
+    readFileOff(fd, &type, offset, sizeof(unsigned char));
+
+    switch(type) {
+        case EMPTY_SQUARE:
+            type = INVISIBLE_WALL;
+            break;
+
+        case INVISIBLE_WALL:
+            type = VISIBLE_WALL;
+            break;
+
+        case VISIBLE_WALL:
+            type = EMPTY_SQUARE;
+            break;
+
+        default:
+            printf("Unsupported wall type");
+    }
+
+    /* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position */
+    if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END))) {
+        writeFileOff(fd, &type, offset, sizeof(unsigned char));
+    }
+
+    return type;
 }
 
 int setWall(int fd, unsigned char type, int x, int y) {
