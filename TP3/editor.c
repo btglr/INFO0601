@@ -153,6 +153,8 @@ int main(int argc, char *argv[]) {
     delwin(borderInformationWindow);
     delwin(gameWindow);
     delwin(borderGameWindow);
+    delwin(stateWindow);
+    delwin(borderStateWindow);
 
     /* Stopping ncurses */
     ncurses_stopper();
