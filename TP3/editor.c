@@ -17,23 +17,24 @@
 #define BORDER_GAME_WINDOW_HEIGHT MAP_HEIGHT + BORDER_HEIGHT
 
 int main(int argc, char *argv[]) {
-    int i, fd, mouseX, mouseY, added, relativeXPosition, cpt = 0;
+    int i, fd, mouseX, mouseY, type, relativeXPosition, cpt = 0;
+    unsigned char lives;
     /*int playerColor, discoveredWallColor, visibleWallColor, trailColor;*/
-    char fileName[256];
+    char filename[256];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
     if (argc == 2) {
         for (i = 0; argv[1][i] != '\0'; ++i) {
-            fileName[i] = argv[1][i];
+            filename[i] = argv[1][i];
         }
 
-        fileName[i] = '\0';
+        filename[i] = '\0';
     }
 
     else {
         printf("Please enter a filename to open: ");
 
-        if (scanf("%[a-zA-Z0-9._-/]s", fileName) != 1) {
+        if (scanf("%[a-zA-Z0-9._-/]s", filename) != 1) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
@@ -55,6 +56,9 @@ int main(int argc, char *argv[]) {
     addColor(COLOR_DISCOVERED_WALL, COLOR_DISCOVERED_WALL);
     addColor(COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
     addColor(COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
+    addColor(COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);
+    addColor(COLOR_GREEN, COLOR_BLACK);
+    addColor(COLOR_RED, COLOR_BLACK);
 
     borderInformationWindow = initializeWindow(
             BORDER_INFORMATION_WINDOW_WIDTH,
@@ -94,7 +98,7 @@ int main(int argc, char *argv[]) {
     box(borderStateWindow, 0, 0);
 
     mvwprintw(borderInformationWindow, 0, 2, "Information");
-    mvwprintw(borderGameWindow, 0, 2, "Game");
+    mvwprintw(borderGameWindow, 0, 2, "Map Editor");
     mvwprintw(borderStateWindow, 0, 2, "State");
 
     wrefresh(borderInformationWindow);
@@ -104,37 +108,42 @@ int main(int argc, char *argv[]) {
     wrefresh(borderStateWindow);
     wrefresh(stateWindow);
 
-    fd = loadMap(fileName);
+    fd = loadMap(filename);
 
-    setWall(fd, VISIBLE_WALL, 5, 5);
-    setWall(fd, VISIBLE_WALL, 0, 9);
-    setWall(fd, VISIBLE_WALL, 6, 5);
-    setWall(fd, VISIBLE_WALL, 7, 5);
-    setWall(fd, DISCOVERED_WALL, 8, 5);
+    readFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+
+    mvwprintw(stateWindow, 1, 1, "Lives: %d", lives);
+    wattron(stateWindow, COLOR_PAIR(8));
+    mvwaddch(stateWindow, 1, 12, ACS_HLINE | WA_BOLD);
+    mvwaddch(stateWindow, 1, 13, ACS_PLUS | WA_BOLD);
+    mvwaddch(stateWindow, 1, 14, ACS_HLINE | WA_BOLD);
+    wattroff(stateWindow, COLOR_PAIR(8));
+    wattron(stateWindow, COLOR_PAIR(9));
+    mvwaddch(stateWindow, 1, 18, ACS_HLINE | WA_BOLD);
+    mvwaddch(stateWindow, 1, 19, ACS_HLINE | WA_BOLD);
+    mvwaddch(stateWindow, 1, 20, ACS_HLINE | WA_BOLD);
+    wattroff(stateWindow, COLOR_PAIR(9));
+    wrefresh(stateWindow);
 
     drawMap(gameWindow, fd);
 
     while ((i = getch()) != KEY_F(2)) {
         if ((i == KEY_MOUSE) && (souris_getpos(&mouseX, &mouseY, NULL) == OK)) {
+            /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
             if(wmouse_trafo(gameWindow, &mouseY, &mouseX, FALSE) != FALSE) {
-                /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
-
                 /* Get the relative x position (depends on SQUARE_WIDTH) */
                 relativeXPosition = mouseX / SQUARE_WIDTH;
-                /*relativeXPosition = (mouseX % SQUARE_WIDTH == 0) ? (mouseX / SQUARE_WIDTH + 1) : (mouseX / SQUARE_WIDTH) + ((mouseX % SQUARE_WIDTH) != 0);*/
 
                 if(cpt != 0)
                     wprintw(informationWindow, "\n");
 
-                added = setWall(fd, VISIBLE_WALL, relativeXPosition, mouseY);
+                type = changeWall(fd, relativeXPosition, mouseY);
 
-                if(added > 0) {
-                    wprintw(informationWindow, "Added a wall at (%d, %d)", relativeXPosition, mouseY, mouseX, mouseY);
-                    wrefresh(informationWindow);
+                wprintw(informationWindow, "Changed a wall at (%d, %d)", relativeXPosition, mouseY);
+                wrefresh(informationWindow);
 
-                    drawSquare(gameWindow, VISIBLE_WALL, relativeXPosition * SQUARE_WIDTH, mouseY, true);
-                    cpt++;
-                }
+                drawWall(gameWindow, type, relativeXPosition * SQUARE_WIDTH, mouseY, true);
+                cpt++;
             }
         }
     }
@@ -145,15 +154,6 @@ int main(int argc, char *argv[]) {
     delwin(borderInformationWindow);
     delwin(gameWindow);
     delwin(borderGameWindow);
-
-    /*fd = loadMap(fileName);
-
-    setWall(fd, VISIBLE_WALL, 28, 8);
-
-    test(fd);
-
-    color = addColor(COLOR_BLACK, COLOR_BLUE);
-    printf("Pair: %d\n", color);*/
 
     /* Stopping ncurses */
     ncurses_stopper();
