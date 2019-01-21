@@ -14,7 +14,7 @@ int loadGame(char *filename) {
     unsigned char remainingLives;
     unsigned char buf[3];
     char saveFilename[MAX_FILENAME_LENGTH];
-    char *originalFilename, *mapName;
+    char *originalMapFilename, *mapName;
 
     if (strstr(filename, "_game.bin")) {
         /* User specified a save file, load it if it exists */
@@ -27,15 +27,15 @@ int loadGame(char *filename) {
         /* We attempt to open the map file */
         mapFd = openFile(filename, O_RDONLY, S_IRUSR);
 
-        originalFilename = (char*) malloc((strlen(filename) + 1) * sizeof(char));
+        originalMapFilename = (char*) malloc((strlen(filename) + 1) * sizeof(char));
 
-        if(originalFilename == NULL) {
+        if(originalMapFilename == NULL) {
             stop_ncurses();
             fprintf(stderr, "An error occurred while trying to allocate memory\n");
             exit(EXIT_FAILURE);
         }
 
-        strcpy(originalFilename, filename);
+        strcpy(originalMapFilename, filename);
 
         /* Separate the map name from the extension */
         mapName = strtok(filename, ".");
@@ -58,7 +58,7 @@ int loadGame(char *filename) {
         }
 
         else {
-            copyFile(originalFilename, saveFilename);
+            copyFile(originalMapFilename, saveFilename);
 
             /* Write the remaining lives as well as the starting position of the player */
             buf[0] = remainingLives;
@@ -68,7 +68,7 @@ int loadGame(char *filename) {
             writeFileOff(saveFd, buf, 0, SEEK_END, sizeof(unsigned char) * 3);
         }
 
-        free(originalFilename);
+        free(originalMapFilename);
     }
 
     return saveFd;
