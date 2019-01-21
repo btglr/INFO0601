@@ -9,7 +9,7 @@
 #include "constants.h"
 
 int main(int argc, char *argv[]) {
-    int i, fd, mouseX, mouseY, type, relativeXPosition, cpt = 0;
+    int i, fd, mouseX, mouseY, type, relativeXPosition, cpt = 0, edited = 0;
     char filename[MAX_FILENAME_LENGTH];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
@@ -121,6 +121,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     cpt++;
+                    edited = 1;
                 }
             }
 
@@ -132,11 +133,13 @@ int main(int argc, char *argv[]) {
                 if (mouseX >= PLUS_SIGN_POS_X && mouseX <= PLUS_SIGN_POS_X + 2 && mouseY == PLUS_SIGN_POS_Y) {
                     wprintw(informationWindow, "Added a life");
                     increaseLives(fd);
+                    edited = 1;
                 }
 
                 else if (mouseX >= MINUS_SIGN_POS_X && mouseX <= MINUS_SIGN_POS_X + 2 && mouseY == MINUS_SIGN_POS_Y) {
                     wprintw(informationWindow, "Removed a life");
                     decreaseLives(fd);
+                    edited = 1;
                 }
 
                 wrefresh(informationWindow);
@@ -145,6 +148,10 @@ int main(int argc, char *argv[]) {
                 cpt++;
             }
         }
+    }
+
+    if (edited == 1) {
+        increaseMapVersion(fd);
     }
 
     closeFile(fd);
