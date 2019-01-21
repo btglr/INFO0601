@@ -10,7 +10,7 @@
 
 int main(int argc, char *argv[]) {
     int i, fd, mouseX, mouseY, type, relativeXPosition, cpt = 0;
-    char filename[256];
+    char filename[MAX_FILENAME_LENGTH];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
     if (argc == 2) {
@@ -31,9 +31,9 @@ int main(int argc, char *argv[]) {
     }
 
     /* Initializing ncurses */
-    ncurses_initialiser();
-    ncurses_souris();
-    ncurses_couleurs();
+    initialize_ncurses();
+    ncurses_mouse();
+    ncurses_colors();
 
     clear();
     refresh();
@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
     loadStateWindow(stateWindow, fd);
 
     while ((i = getch()) != KEY_F(2)) {
-        if ((i == KEY_MOUSE) && (souris_getpos(&mouseX, &mouseY, NULL) == OK)) {
+        if ((i == KEY_MOUSE) && (mouse_getpos(&mouseX, &mouseY, NULL) == OK)) {
             /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
             if(wmouse_trafo(gameWindow, &mouseY, &mouseX, FALSE) != FALSE) {
                 /* Get the relative x position (depends on SQUARE_WIDTH) */
@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
     delwin(borderStateWindow);
 
     /* Stopping ncurses */
-    ncurses_stopper();
+    stop_ncurses();
 
     return EXIT_SUCCESS;
 }

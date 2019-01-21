@@ -9,7 +9,7 @@
 
 WINDOW* initializeWindow(int width, int height, int x, int y) {
     if ((COLS < x + width) || (LINES < y + height)) {
-        ncurses_stopper();
+        stop_ncurses();
         fprintf(stderr, "Terminal window is too small: w=%d, h=%d instead of w=%d, h=%d\n", COLS, LINES, x + width, y + height);
         exit(EXIT_FAILURE);
     }
