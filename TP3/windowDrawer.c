@@ -1,6 +1,7 @@
 #include <curses.h>
 #include <stdlib.h>
 #include <fcntl.h>
+#include <string.h>
 #include "windowDrawer.h"
 #include "mapEditor.h"
 #include "ncurses.h"
@@ -44,6 +45,10 @@ void drawWall(WINDOW *window, int type, int x, int y, bool refresh) {
             color = COLOR_PAIR(PAIR_COLOR_VISITED_SQUARE);
             break;
 
+        case PLAYER_SQUARE:
+            color = COLOR_PAIR(PAIR_COLOR_PLAYER);
+            break;
+
         case EMPTY_SQUARE:
         default:
             color = COLOR_PAIR(PAIR_COLOR_EMPTY_SQUARE);
@@ -76,5 +81,12 @@ void drawMap(WINDOW *window, int fd) {
 
     mvwaddch(window, Y_POS_END, X_POS_END * SQUARE_WIDTH, 'E');
 
+    wrefresh(window);
+}
+
+void printInMiddle(WINDOW *window, int maxWidth, int maxHeight, char *text) {
+    size_t length = strlen(text);
+
+    mvwprintw(window, maxHeight / 2, (maxWidth * SQUARE_WIDTH) / 2 - length / 2, text);
     wrefresh(window);
 }
