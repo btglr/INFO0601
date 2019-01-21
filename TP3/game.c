@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <curses.h>
+#include <string.h>
 #include "ncurses.h"
 #include "constants.h"
 #include "windowDrawer.h"
@@ -9,7 +10,8 @@
 #include "gameManager.h"
 
 int main(int argc, char *argv[]) {
-    int i, fd, posX, posY;
+    int i, fd, origPosX, origPosY, posX, posY, newSquare, remainingLives, cpt = 0;
+    char *gameOver = GAME_OVER;
     char filename[256];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
@@ -44,7 +46,7 @@ int main(int argc, char *argv[]) {
     init_pair(PAIR_COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
     init_pair(PAIR_COLOR_PLUS_SIGN, COLOR_GREEN, COLOR_BLACK);
     init_pair(PAIR_COLOR_MINUS_SIGN, COLOR_RED, COLOR_BLACK);
-    init_pair(PAIR_COLOR_PLAYER, COLOR_PLAYER, COLOR_PLAYER);
+    init_pair(PAIR_COLOR_DISCOVERED_WALL, COLOR_DISCOVERED_WALL, COLOR_DISCOVERED_WALL);
     init_pair(PAIR_COLOR_VISITED_SQUARE, COLOR_VISITED_SQUARE, COLOR_VISITED_SQUARE);
 
     borderInformationWindow = initializeWindow(
@@ -99,12 +101,15 @@ int main(int argc, char *argv[]) {
     fd = loadGame(filename);
 
     drawMap(gameWindow, fd);
-    /*loadStateWindow(stateWindow, fd);*/
+    loadStateWindowManager(stateWindow, fd);
 
     posX = X_POS_BEGINNING;
     posY = Y_POS_BEGINNING;
 
     while ((i = getch()) != KEY_F(2)) {
+        origPosX = posX;
+        origPosY = posY;
+
         wattron(gameWindow, COLOR_PAIR(PAIR_COLOR_VISITED_SQUARE));
         mvwprintw(gameWindow, posY, posX, "  ");
         wattroff(gameWindow, COLOR_PAIR(PAIR_COLOR_VISITED_SQUARE));
@@ -112,11 +117,11 @@ int main(int argc, char *argv[]) {
         switch(i) {
             case KEY_LEFT:
                 if (posX / SQUARE_WIDTH > 0)
-                    posX -= 2;
+                    posX -= SQUARE_WIDTH;
                 break;
             case KEY_RIGHT:
                 if (posX / SQUARE_WIDTH < MAP_WIDTH - 1)
-                    posX += 2;
+                    posX += SQUARE_WIDTH;
                 break;
             case KEY_UP:
                 if (posY > 0)
@@ -128,10 +133,53 @@ int main(int argc, char *argv[]) {
                 break;
         }
 
-        wattron(gameWindow, COLOR_PAIR(PAIR_COLOR_PLAYER));
-        mvwprintw(gameWindow, posY, posX, "  ");
-        wattroff(gameWindow, COLOR_PAIR(PAIR_COLOR_PLAYER));
-        wrefresh(gameWindow);
+        newSquare = movePlayer(fd, posX / SQUARE_WIDTH, posY);
+
+        switch (newSquare) {
+            case VISITED_SQUARE:
+                /* Player has moved, display the current square as the player's position/color */
+                drawWall(gameWindow, PLAYER_SQUARE, posX, posY, true);
+                updateStateWindowManager(stateWindow, 1, 1, "Moves: ", getVisitedSquares(fd));
+
+                break;
+
+            case DISCOVERED_WALL:
+                /* Player has hit an invisible that has become "discovered", draw it as such */
+                drawWall(gameWindow, DISCOVERED_WALL, posX, posY, true);
+                updateStateWindowManager(stateWindow, 1, 2, "Lives: ", getRemainingLives(fd));
+                updateStateWindowManager(stateWindow, 1, 3, "Walls: ", getWallCount(fd));
+
+                remainingLives = getRemainingLives(fd);
+
+                if (remainingLives == 0) {
+                    printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, gameOver);
+                }
+
+                else {
+                    if(cpt != 0)
+                        wprintw(informationWindow, "\n");
+
+                    wprintw(informationWindow, "Lost one life, %d remaining!", remainingLives);
+                    wrefresh(informationWindow);
+
+                    cpt++;
+                }
+
+            case -1:
+                /* We either encountered a wall or there was an error, so simply set the position back to what it was before the move */
+                posX = origPosX;
+                posY = origPosY;
+
+                wattron(gameWindow, COLOR_PAIR(PAIR_COLOR_PLAYER));
+                mvwprintw(gameWindow, posY, posX, "  ");
+                wattroff(gameWindow, COLOR_PAIR(PAIR_COLOR_PLAYER));
+                wrefresh(gameWindow);
+
+                break;
+
+            default:
+                break;
+        }
     }
 
     closeFile(fd);
