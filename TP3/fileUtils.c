@@ -94,8 +94,8 @@ ssize_t writeFile(int fd, void *buf, size_t length) {
  * @param length The length of the data to write
  * @return The number of bytes successfully written
  */
-ssize_t writeFileOff(int fd, void *buf, off_t offset, size_t length) {
-    seekFile(fd, offset, SEEK_SET);
+ssize_t writeFileOff(int fd, void *buf, off_t offset, int from, size_t length) {
+    seekFile(fd, offset, from);
     return writeFile(fd, buf, length);
 }
 
@@ -131,8 +131,8 @@ ssize_t readFile(int fd, void *buf, size_t length) {
  * @param length The length of the data to read
  * @return The number of bytes successfully read
  */
-ssize_t readFileOff(int fd, void *buf, off_t offset, size_t length) {
-    seekFile(fd, offset, SEEK_SET);
+ssize_t readFileOff(int fd, void *buf, off_t offset, int from, size_t length) {
+    seekFile(fd, offset, from);
     return readFile(fd, buf, length);
 }
 
