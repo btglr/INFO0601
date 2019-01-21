@@ -13,7 +13,7 @@ int loadGame(char *filename) {
     int saveFd, mapFd, mapVersion;
     unsigned char remainingLives;
     unsigned char buf[3];
-    char saveFileName[MAX_FILENAME_LENGTH];
+    char saveFilename[MAX_FILENAME_LENGTH];
     char *originalFilename, *mapName;
 
     if (strstr(filename, "_game.bin")) {
@@ -44,18 +44,29 @@ int loadGame(char *filename) {
         readFileOff(mapFd, &remainingLives, 0, SEEK_CUR, sizeof(unsigned char));
         closeFile(mapFd);
 
-        sprintf(saveFileName, "%s_%d_game.bin", mapName, mapVersion);
+        sprintf(saveFilename, "%s_%d_game.bin", mapName, mapVersion);
 
         /* Check if save file already exists */
-        saveFd = openFile(saveFileName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
-        copyFile(originalFilename, saveFileName);
+        if ((saveFd = open(saveFilename, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) == -1) {
+            if (errno != EEXIST) {
+                stop_ncurses();
+                perror("An error occurred while trying to open the file");
+                exit(EXIT_FAILURE);
+            }
 
-        /* Write the remaining lives as well as the starting position of the player */
-        buf[0] = remainingLives;
-        buf[1] = X_POS_BEGINNING;
-        buf[2] = Y_POS_BEGINNING;
+            saveFd = openFile(saveFilename, O_RDWR, S_IRUSR | S_IWUSR);
+        }
 
-        writeFileOff(saveFd, buf, 0, SEEK_END, sizeof(unsigned char) * 3);
+        else {
+            copyFile(originalFilename, saveFilename);
+
+            /* Write the remaining lives as well as the starting position of the player */
+            buf[0] = remainingLives;
+            buf[1] = X_POS_BEGINNING;
+            buf[2] = Y_POS_BEGINNING;
+
+            writeFileOff(saveFd, buf, 0, SEEK_END, sizeof(unsigned char) * 3);
+        }
 
         free(originalFilename);
     }
