@@ -1,10 +1,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "fileUtils.h"
+#include "ncurses.h"
+#include <string.h>
 #include <stdarg.h>
+
+int copyFile(char *src, char *dest) {
+    int fdOrig, fdDest;
+    char buf[1024];
+    ssize_t bytesRead;
+
+    fdOrig = openFile(src, O_RDONLY);
+    fdDest = openFile(dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+
+    while ((bytesRead = readFile(fdOrig, buf, sizeof(buf))) > 0) {
+        writeFile(fdDest, buf, bytesRead);
+    }
+
+    return 1;
+}
 
 /**
  * Opens a file with the given filename
@@ -22,6 +40,7 @@ int openFile(char *filename, int flags, ...) {
     mode = va_arg(va, mode_t);
 
     if ((fd = open(filename, flags, mode)) == -1) {
+        stop_ncurses();
         perror("An error occurred while trying to open a file");
         exit(EXIT_FAILURE);
     }
@@ -39,6 +58,7 @@ int openFile(char *filename, int flags, ...) {
  */
 void seekFile(int fd, off_t offset, int from) {
     if (lseek(fd, offset, from) == -1) {
+        stop_ncurses();
         perror("An error occurred while seeking the file");
         exit(EXIT_FAILURE);
     }
@@ -55,6 +75,7 @@ ssize_t writeFile(int fd, void *buf, size_t length) {
     ssize_t bytesWritten;
 
     if ((bytesWritten = write(fd, buf, length)) == -1) {
+        stop_ncurses();
         perror("An error occurred while writing the file");
         exit(EXIT_FAILURE);
     }
@@ -86,14 +107,15 @@ ssize_t readFile(int fd, void *buf, size_t length) {
     ssize_t bytesRead;
 
     if ((bytesRead = read(fd, buf, length)) == -1) {
+        stop_ncurses();
         perror("An error occurred while reading the file");
         exit(EXIT_FAILURE);
     }
 
-    else if(bytesRead == 0) {
+    /*else if(bytesRead == 0) {
         fprintf(stderr, "An error occurred while reading the file: no bytes could be read\n");
         exit(EXIT_FAILURE);
-    }
+    }*/
 
     return bytesRead;
 }
@@ -117,6 +139,7 @@ ssize_t readFileOff(int fd, void *buf, off_t offset, size_t length) {
  */
 void closeFile(int fd) {
     if (close(fd) == -1) {
+        stop_ncurses();
         perror("An error occurred while closing the file");
         exit(EXIT_FAILURE);
     }
