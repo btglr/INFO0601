@@ -9,6 +9,9 @@
 #include "mapEditor.h"
 #include "fileUtils.h"
 #include "constants.h"
+#include "gameManager.h"
+#include "ncurses.h"
+
 
 /**
  * Initializes a new map with a default number of lives, a map version and all the squares as 0
@@ -49,6 +52,7 @@ int loadMap(char *mapName) {
         }
 
         else {
+            stop_ncurses();
             perror("An error occurred while trying to open a file");
             exit(EXIT_FAILURE);
         }
