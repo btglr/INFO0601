@@ -8,7 +8,7 @@
 int main(int argc, char* argv[]) {
     int i, fd, bytesRead, startPosition, endPosition;
     off_t filesize;
-    char fileName[256];
+    char fileName[256], c;
     unsigned char *buffer;
 
     if (argc == 4) {
@@ -29,8 +29,15 @@ int main(int argc, char* argv[]) {
 
     else {
         printf("Please enter a filename to open: ");
+        if (scanf("%[a-zA-Z0-9._-/]s", fileName) != 1) {
+            fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
+            exit(EXIT_FAILURE);
+        }
 
-        if (scanf("%[a-zA-Z0-9._-/]s %d %d", fileName, &startPosition, &endPosition) != 1) {
+        while (((c = getchar()) != '\n') || (c == EOF));
+
+        printf("Please enter the start and end position: ");
+        if (scanf("%d %d", &startPosition, &endPosition) != 2) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
