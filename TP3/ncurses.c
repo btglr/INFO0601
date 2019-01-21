@@ -6,7 +6,7 @@
 /**
  * Initialisation de ncurses.
  */
-void ncurses_initialiser() {
+void initialize_ncurses() {
     initscr();            /* Demarre le mode ncurses */
     cbreak();             /* Pour les saisies clavier (desac. mise en buffer) */
     noecho();             /* Desactive l'affichage des caracteres saisis */
@@ -18,17 +18,17 @@ void ncurses_initialiser() {
 /**
  * Fin de ncurses.
  */
-void ncurses_stopper() {
+void stop_ncurses() {
     endwin();
 }
 
 /**
  * Initialisation des couleurs.
  */
-void ncurses_couleurs() {
+void ncurses_colors() {
     /* Verification du support de la couleur */
     if (has_colors() == FALSE) {
-        ncurses_stopper();
+        stop_ncurses();
         fprintf(stderr, "Le terminal ne supporte pas les couleurs.\n");
         exit(EXIT_FAILURE);
     }
@@ -44,15 +44,15 @@ void ncurses_couleurs() {
 /**
  * Initialisation de la souris.
  */
-void ncurses_souris() {
+void ncurses_mouse() {
     if (!mousemask(ALL_MOUSE_EVENTS, NULL)) {
-        ncurses_stopper();
+        stop_ncurses();
         fprintf(stderr, "Erreur lors de l'initialisation de la souris.\n");
         exit(EXIT_FAILURE);
     }
 
     if (has_mouse() != TRUE) {
-        ncurses_stopper();
+        stop_ncurses();
         fprintf(stderr, "Aucune souris n'est détectée.\n");
         exit(EXIT_FAILURE);
     }
@@ -62,18 +62,18 @@ void ncurses_souris() {
  * Recupere la position x et y de la souris.
  * @param[out] x la position en x
  * @param[out] y la position en y
- * @param[out] bouton l'évenement associé au clic (ou NULL)
+ * @param[out] button l'évenement associé au clic (ou NULL)
  * @return OK si reussite
  */
-int souris_getpos(int *x, int *y, int *bouton) {
+int mouse_getpos(int *x, int *y, int *button) {
     MEVENT event;
     int resultat = getmouse(&event);
 
     if (resultat == OK) {
         *x = event.x;
         *y = event.y;
-        if (bouton != NULL)
-            *bouton = event.bstate;
+        if (button != NULL)
+            *button = event.bstate;
     }
     return resultat;
 }
