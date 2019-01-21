@@ -40,5 +40,6 @@
 #define PLUS_SIGN_POS_Y 1
 #define MINUS_SIGN_POS_X 18
 #define MINUS_SIGN_POS_Y 1
+#define MAX_FILENAME_LENGTH 256
 
 #endif
