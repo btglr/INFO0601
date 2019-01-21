@@ -65,7 +65,7 @@ void drawMap(WINDOW *window, int fd) {
     unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
     ssize_t bytesRead;
 
-    bytesRead = readFileOff(fd, buffer, initialPadding, sizeof(unsigned char) * MAP_WIDTH * MAP_HEIGHT);
+    bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, sizeof(unsigned char) * MAP_WIDTH * MAP_HEIGHT);
 
     for(i = 0; i < bytesRead; ++i) {
         x = (i % MAP_WIDTH) * SQUARE_WIDTH;

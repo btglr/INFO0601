@@ -76,7 +76,7 @@ int changeWall(int fd, int x, int y) {
     if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT)) {
         offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
 
-        readFileOff(fd, &originalType, offset, sizeof(unsigned char));
+        readFileOff(fd, &originalType, offset, SEEK_SET, sizeof(unsigned char));
 
         switch(originalType) {
             case EMPTY_SQUARE:
@@ -98,7 +98,7 @@ int changeWall(int fd, int x, int y) {
 
         /* If the coordinates aren't corresponding to the entry or exit we write the type to the corresponding position */
         if ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END)) {
-            writeFileOff(fd, &type, offset, sizeof(unsigned char));
+            writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
             res = type;
         }
 
@@ -127,7 +127,7 @@ void decreaseLives(int fd) {
 
     if(lives > 0) {
         lives--;
-        writeFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+        writeFileOff(fd, &lives, sizeof(int), SEEK_SET, sizeof(unsigned char));
     }
 }
 
@@ -136,7 +136,7 @@ void increaseLives(int fd) {
 
     if (lives < 255) {
         lives++;
-        writeFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+        writeFileOff(fd, &lives, sizeof(int), SEEK_SET, sizeof(unsigned char));
     }
 }
 
@@ -146,7 +146,7 @@ int getWallCount(int fd) {
     ssize_t bytesRead;
     unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
 
-    bytesRead = readFileOff(fd, buffer, initialPadding, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
+    bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
 
     for(i = 0; i < bytesRead; ++i) {
         wallCount = (buffer[i] == VISIBLE_WALL || buffer[i] == INVISIBLE_WALL) ? wallCount + 1 : wallCount;
@@ -158,7 +158,7 @@ int getWallCount(int fd) {
 unsigned char getLives(int fd) {
     unsigned char lives;
 
-    readFileOff(fd, &lives, sizeof(int), sizeof(unsigned char));
+    readFileOff(fd, &lives, sizeof(int), SEEK_SET, sizeof(unsigned char));
 
     return lives;
 }
@@ -220,7 +220,7 @@ int setWall(int fd, unsigned char type, int x, int y) {
             /* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position */
             if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END))) {
                 offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
-                bytesWritten = writeFileOff(fd, &type, offset, sizeof(unsigned char));
+                bytesWritten = writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
             }
 
             break;
