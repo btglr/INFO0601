@@ -206,6 +206,14 @@ void updateStateWindowEditor(WINDOW *window, int x, int y, char *s, int value) {
     wrefresh(window);
 }
 
+void increaseMapVersion(int fd) {
+    int mapVersion;
+
+    readFileOff(fd, &mapVersion, 0, SEEK_SET, sizeof(int));
+    mapVersion++;
+    writeFileOff(fd, &mapVersion, 0, SEEK_SET, sizeof(int));
+}
+
 /*int setWall(int fd, unsigned char type, int x, int y) {
     *//* Map version + number of lives *//*
     int initialPadding = sizeof(int) + sizeof(unsigned char);

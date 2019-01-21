@@ -13,5 +13,6 @@ void increaseLives(int fd);
 void decreaseLives(int fd);
 int getWallCount(int fd);
 unsigned char getLives(int fd);
+void increaseMapVersion(int fd);
 
 #endif
