@@ -41,7 +41,7 @@ void initializeMap(int fd) {
  * @param mapName The map's name
  * @return A file descriptor to the map
  */
-int loadMap(char *mapName) {
+int loadMapEditor(char *mapName) {
     int fd;
 
     fd = open(mapName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
@@ -66,7 +66,7 @@ int loadMap(char *mapName) {
     return fd;
 }
 
-int changeWall(int fd, int x, int y) {
+int changeWallEditor(int fd, int x, int y) {
     unsigned char originalType, type;
     /* Map version + number of lives */
     int initialPadding = sizeof(int) + sizeof(unsigned char);
@@ -115,11 +115,11 @@ int changeWall(int fd, int x, int y) {
 }
 
 void updateWallCount(WINDOW *window, int fd) {
-    updateStateWindow(window, 1, 2, "Walls: ", getWallCount(fd));
+    updateStateWindowEditor(window, 1, 2, "Walls: ", getWallCount(fd));
 }
 
 void updateLivesCount(WINDOW *window, int fd) {
-    updateStateWindow(window, 1, 1, "Lives: ", getLives(fd));
+    updateStateWindowEditor(window, 1, 1, "Lives: ", getLives(fd));
 }
 
 void decreaseLives(int fd) {
@@ -163,9 +163,9 @@ unsigned char getLives(int fd) {
     return lives;
 }
 
-void loadStateWindow(WINDOW *window, int fd) {
-    updateStateWindow(window, 1, 1, "Lives: ", getLives(fd));
-    updateStateWindow(window, 1, 2, "Walls: ", getWallCount(fd));
+void loadStateWindowEditor(WINDOW *window, int fd) {
+    updateStateWindowEditor(window, 1, 1, "Lives: ", getLives(fd));
+    updateStateWindowEditor(window, 1, 2, "Walls: ", getWallCount(fd));
 
     wattron(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
     mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X, ACS_HLINE | WA_BOLD);
@@ -195,7 +195,7 @@ void loadStateWindow(WINDOW *window, int fd) {
     wrefresh(window);
 }
 
-void updateStateWindow(WINDOW *window, int x, int y, char *s, int value) {
+void updateStateWindowEditor(WINDOW *window, int x, int y, char *s, int value) {
     size_t length = strlen(s);
 
     mvwprintw(window, y, x, s);
@@ -206,8 +206,8 @@ void updateStateWindow(WINDOW *window, int x, int y, char *s, int value) {
     wrefresh(window);
 }
 
-int setWall(int fd, unsigned char type, int x, int y) {
-    /* Map version + number of lives */
+/*int setWall(int fd, unsigned char type, int x, int y) {
+    *//* Map version + number of lives *//*
     int initialPadding = sizeof(int) + sizeof(unsigned char);
     int offset;
     ssize_t bytesWritten = -1;
@@ -217,7 +217,7 @@ int setWall(int fd, unsigned char type, int x, int y) {
         case INVISIBLE_WALL:
         case VISIBLE_WALL:
         case DISCOVERED_WALL:
-            /* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position */
+            *//* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position *//*
             if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END))) {
                 offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
                 bytesWritten = writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
@@ -230,4 +230,4 @@ int setWall(int fd, unsigned char type, int x, int y) {
     }
 
     return (int) bytesWritten;
-}
+}*/

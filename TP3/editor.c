@@ -94,10 +94,10 @@ int main(int argc, char *argv[]) {
     wrefresh(borderStateWindow);
     wrefresh(stateWindow);
 
-    fd = loadMap(filename);
+    fd = loadMapEditor(filename);
 
     drawMap(gameWindow, fd);
-    loadStateWindow(stateWindow, fd);
+    loadStateWindowEditor(stateWindow, fd);
 
     while ((i = getch()) != KEY_F(2)) {
         if ((i == KEY_MOUSE) && (mouse_getpos(&mouseX, &mouseY, NULL) == OK)) {
@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
                 if(cpt != 0)
                     wprintw(informationWindow, "\n");
 
-                type = changeWall(fd, relativeXPosition, mouseY);
+                type = changeWallEditor(fd, relativeXPosition, mouseY);
 
                 if(type >= 0) {
                     wprintw(informationWindow, "Changed a wall at (%d, %d)", relativeXPosition, mouseY);
