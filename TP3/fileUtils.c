@@ -9,19 +9,22 @@
 #include <string.h>
 #include <stdarg.h>
 
-int copyFile(char *src, char *dest) {
+ssize_t copyFile(char *src, char *dest) {
     int fdOrig, fdDest;
     char buf[1024];
-    ssize_t bytesRead;
+    ssize_t bytesRead, bytesWritten = 0;
 
     fdOrig = openFile(src, O_RDONLY);
     fdDest = openFile(dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
     while ((bytesRead = readFile(fdOrig, buf, sizeof(buf))) > 0) {
-        writeFile(fdDest, buf, bytesRead);
+        bytesWritten += writeFile(fdDest, buf, bytesRead);
     }
 
-    return 1;
+    closeFile(fdDest);
+    closeFile(fdOrig);
+
+    return bytesWritten;
 }
 
 /**

@@ -3,7 +3,7 @@
 
 #include <sys/types.h>
 
-int copyFile(char *src, char *dest);
+ssize_t copyFile(char *src, char *dest);
 int openFile(char *filename, int flags, ...);
 void seekFile(int fd, off_t offset, int from);
 ssize_t writeFile(int fd, void *buf, size_t length);

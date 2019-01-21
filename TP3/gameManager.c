@@ -15,23 +15,14 @@ int loadGame(char *filename) {
 
     if (strstr(filename, "_game.bin")) {
         /* User specified a save file, load it if it exists */
-
-        if ((fd = open(filename, O_RDONLY, S_IRUSR)) == -1) {
-            stop_ncurses();
-            perror("An error occurred while trying to open the specified save file");
-            exit(EXIT_FAILURE);
-        }
+        fd = openFile(filename, O_RDONLY, S_IRUSR);
     }
 
     else {
         /* User specified a map name, we create a new save file */
 
         /* We attempt to open the map file */
-        if ((fd = open(filename, O_RDONLY, S_IRUSR)) == -1) {
-            stop_ncurses();
-            perror("An error occurred while trying to open the specified map file");
-            exit(EXIT_FAILURE);
-        }
+        fd = openFile(filename, O_RDONLY, S_IRUSR);
 
         originalFilename = (char*) malloc((strlen(filename) + 1) * sizeof(char));
 
@@ -46,20 +37,14 @@ int loadGame(char *filename) {
         /* Separate the map name from the extension */
         mapName = strtok(filename, ".");
 
-        if(mapName == NULL) {
-            stop_ncurses();
-            fprintf(stderr, "An error occurred while trying to split string: delimiter not found\n");
-            exit(EXIT_FAILURE);
-        }
-
         readFileOff(fd, &mapVersion, 0, sizeof(int));
+        closeFile(fd);
+
         sprintf(saveFileName, "%s_%d_game.bin", mapName, mapVersion);
 
-        if ((fd = open(saveFileName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) == -1) {
-            stop_ncurses();
-            perror("An error occurred while trying to open the new save file");
-            exit(EXIT_FAILURE);
-        }
+        /* Check if save file already exists */
+        fd = openFile(saveFileName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+        closeFile(fd);
 
         copyFile(originalFilename, saveFileName);
 
