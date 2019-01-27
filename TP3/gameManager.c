@@ -91,7 +91,7 @@ int movePlayer(int fd, int newX, int newY) {
                     /* Player loses one life, discovers one wall */
                     newSquare = DISCOVERED_WALL;
 
-                    changeWallManager(fd, newX, newY);
+                    changeWallGame(fd, newX, newY);
                     loseLife(fd);
 
                     break;
@@ -100,7 +100,7 @@ int movePlayer(int fd, int newX, int newY) {
                 case EMPTY_SQUARE:
                     newSquare = VISITED_SQUARE;
 
-                    changeWallManager(fd, newX, newY);
+                    changeWallGame(fd, newX, newY);
                     setPlayerPosition(fd, newX, newY);
 
                     break;
@@ -171,7 +171,7 @@ unsigned char getNextWallGame(unsigned char type) {
     return nextType;
 }
 
-unsigned char changeWallManager(int fd, int x, int y) {
+unsigned char changeWallGame(int fd, int x, int y) {
     unsigned char originalType, nextType, res = UNCHANGED;
     /* Map version + number of lives */
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
