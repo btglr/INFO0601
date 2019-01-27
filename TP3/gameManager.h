@@ -7,11 +7,11 @@
 int loadGame(char *filename);
 int movePlayer(int fd, int newX, int newY);
 int loseLife(int fd);
-unsigned char getRemainingLives(int fd);
-ssize_t setRemainingLives(int fd, unsigned char lives);
-int getVisitedSquares(int fd);
-void loadStateWindowManager(WINDOW *window, int fd);
-void updateStateWindowManager(WINDOW *window, int x, int y, char *s, int value);
-int changeWallManager(int fd, int x, int y);
+void loadStateWindowManager(WINDOW *window);
+unsigned char changeWallManager(int fd, int x, int y);
+unsigned char getNextWallGame(unsigned char type);
+void updateDiscoveredWalls(WINDOW *window, int fd);
+void updateMoves(WINDOW *window, int fd);
+void updateLivesLeft(WINDOW *window, int fd);
 
 #endif

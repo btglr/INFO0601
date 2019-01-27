@@ -8,6 +8,8 @@
 #include "constants.h"
 #include "ncurses.h"
 #include "mapEditor.h"
+#include "mapUtils.h"
+#include "windowDrawer.h"
 
 int loadGame(char *filename) {
     int saveFd, mapFd, mapVersion;
@@ -40,8 +42,8 @@ int loadGame(char *filename) {
         /* Separate the map name from the extension */
         mapName = strtok(filename, ".");
 
-        readFileOff(mapFd, &mapVersion, 0, SEEK_SET, sizeof(int));
-        readFileOff(mapFd, &remainingLives, 0, SEEK_CUR, sizeof(unsigned char));
+        mapVersion = getMapVersion(mapFd);
+        remainingLives = getTotalLives(mapFd);
         closeFile(mapFd);
 
         sprintf(saveFilename, "%s_%d_game.bin", mapName, mapVersion);
@@ -99,6 +101,7 @@ int movePlayer(int fd, int newX, int newY) {
                     newSquare = VISITED_SQUARE;
 
                     changeWallManager(fd, newX, newY);
+                    setPlayerPosition(fd, newX, newY);
 
                     break;
 
@@ -125,50 +128,7 @@ int loseLife(int fd) {
     return remainingLives;
 }
 
-ssize_t setRemainingLives(int fd, unsigned char lives) {
-    ssize_t bytesWritten;
-    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
-    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
-
-    bytesWritten = writeFileOff(fd, &lives, offset, SEEK_SET, sizeof(unsigned char));
-
-    return bytesWritten;
-}
-
-unsigned char getRemainingLives(int fd) {
-    unsigned char remainingLives;
-    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
-    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
-
-    if (readFileOff(fd, &remainingLives, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
-        remainingLives = 0;
-    }
-
-    return remainingLives;
-}
-
-int getVisitedSquares(int fd) {
-    ssize_t bytesRead;
-    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
-    int i, visitedSquares = 0;
-    int initialPadding = sizeof(int) + sizeof(unsigned char);
-
-    if ((bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char))) > 0) {
-        for (i = 0; i < bytesRead; ++i) {
-            if (buffer[i] == VISITED_SQUARE) {
-                visitedSquares++;
-            }
-        }
-    }
-
-    return visitedSquares;
-}
-
-void loadStateWindowManager(WINDOW *window, int fd) {
-    updateStateWindowManager(window, 1, 1, "Moves: ", getVisitedSquares(fd));
-    updateStateWindowManager(window, 1, 2, "Lives: ", getRemainingLives(fd));
-    updateStateWindowManager(window, 1, 3, "Walls: ", getWallCount(fd));
-
+void loadStateWindowManager(WINDOW *window) {
     wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
     mvwprintw(window, 5, 1, "  ");
     wattroff(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
@@ -182,7 +142,7 @@ void loadStateWindowManager(WINDOW *window, int fd) {
     wattron(window, COLOR_PAIR(PAIR_COLOR_PLAYER));
     mvwprintw(window, 7, 1, "  ");
     wattroff(window, COLOR_PAIR(PAIR_COLOR_PLAYER));
-    mvwprintw(window, 7, 4, "Discovered wall");
+    mvwprintw(window, 7, 4, "Player");
 
     mvwprintw(window, 8, 1, "E ");
     mvwprintw(window, 8, 4, "Exit");
@@ -190,23 +150,31 @@ void loadStateWindowManager(WINDOW *window, int fd) {
     wrefresh(window);
 }
 
-void updateStateWindowManager(WINDOW *window, int x, int y, char *s, int value) {
-    size_t length = strlen(s);
+unsigned char getNextWallGame(unsigned char type) {
+    unsigned char nextType;
 
-    mvwprintw(window, y, x, s);
+    switch(type) {
+        case EMPTY_SQUARE:
+            nextType = VISITED_SQUARE;
+            break;
 
-    /* Print additional spaces to clear any remaining numbers */
-    /* TODO clrtoeol */
-    mvwprintw(window, y, (int) (x + length), "%d  ", value);
+        case INVISIBLE_WALL:
+            nextType = DISCOVERED_WALL;
+            break;
 
-    wrefresh(window);
+        case VISIBLE_WALL:
+        case VISITED_SQUARE:
+        default:
+            nextType = type;
+    }
+
+    return nextType;
 }
 
-int changeWallManager(int fd, int x, int y) {
-    unsigned char originalType, type;
+unsigned char changeWallManager(int fd, int x, int y) {
+    unsigned char originalType, nextType, res = UNCHANGED;
     /* Map version + number of lives */
-    int initialPadding = sizeof(int) + sizeof(unsigned char);
-    int offset, res;
+    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
 
     /* If the given coordinates are within the map */
     if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT)) {
@@ -214,35 +182,50 @@ int changeWallManager(int fd, int x, int y) {
 
         readFileOff(fd, &originalType, offset, SEEK_SET, sizeof(unsigned char));
 
-        switch(originalType) {
-            case EMPTY_SQUARE:
-                type = VISITED_SQUARE;
-                break;
-
-            case INVISIBLE_WALL:
-                type = DISCOVERED_WALL;
-                break;
-
-            case VISIBLE_WALL:
-            case VISITED_SQUARE:
-            default:
-                type = originalType;
-        }
+        nextType = getNextWallGame(originalType);
 
         /* If the coordinates aren't corresponding to the entry or exit we write the type to the corresponding position */
         if ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END)) {
-            writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
-            res = type;
+            writeFileOff(fd, &nextType, offset, SEEK_SET, sizeof(unsigned char));
+            res = nextType;
         }
-
-        else {
-            res = -1;
-        }
-    }
-
-    else {
-        res = -1;
     }
 
     return res;
 }
+
+void updateDiscoveredWalls(WINDOW *window, int fd) {
+    updateStateWindow(window, 1, 3, "Walls: %d/%d", getWallCount(fd, DISCOVERED_WALL), getWallCount(fd, INVISIBLE_WALL) + getWallCount(fd, DISCOVERED_WALL));
+}
+
+void updateMoves(WINDOW *window, int fd) {
+    updateStateWindow(window, 1, 1, "Moves: %d", getVisitedSquares(fd));
+}
+
+void updateLivesLeft(WINDOW *window, int fd) {
+    updateStateWindow(window, 1, 2, "Lives: %d", getRemainingLives(fd));
+}
+
+/*unsigned char getPlayerXPosition(int fd) {
+    unsigned char xPos;
+    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
+    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
+
+    if (readFileOff(fd, &xPos, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
+        xPos = 0;
+    }
+
+    return xPos;
+}
+
+unsigned char getPlayerYPosition(int fd) {
+    unsigned char yPos;
+    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
+    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char) + sizeof(unsigned char);
+
+    if (readFileOff(fd, &yPos, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
+        yPos = 0;
+    }
+
+    return yPos;
+}*/
