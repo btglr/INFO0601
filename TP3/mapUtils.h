@@ -1,0 +1,21 @@
+#ifndef TP3_MAPUTILS_H
+#define TP3_MAPUTILS_H
+
+unsigned char getTotalLives(int fd);
+unsigned char getRemainingLives(int fd);
+int getMapVersion(int fd);
+void getPlayerPosition(int fd, unsigned char *x, unsigned char *y);
+void setPlayerPosition(int fd, int x, int y);
+ssize_t setRemainingLives(int fd, unsigned char lives);
+int getVisitedSquares(int fd);
+
+void increaseTotalLives(int fd);
+void decreaseTotalLives(int fd);
+int getWallCount(int fd, int type);
+void increaseMapVersion(int fd);
+unsigned char getWallAt(int fd, int x, int y);
+unsigned char setWallAt(int fd, int x, int y, unsigned char type);
+unsigned char getNextWallAt(int fd, int x, int y, int editor);
+int makeMultipleOf(int v, int m);
+
+#endif
