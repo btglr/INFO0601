@@ -7,11 +7,13 @@
 #include "ncurses.h"
 #include "windowDrawer.h"
 #include "constants.h"
+#include "mapUtils.h"
 
 int main(int argc, char *argv[]) {
-    int i, fd, mouseX, mouseY, type, relativeXPosition, cpt = 0, edited = 0;
-    char filename[MAX_FILENAME_LENGTH];
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
+    int i, ch, fd, mouseX, mouseY, mouseXPreviousClick = 0, mouseYPreviousClick = 0, dX, dY, relativeXPosition, cpt = 0, edited = FALSE, event, firstRightClick = TRUE;
+    unsigned char wallType;
+    char filename[MAX_FILENAME_LENGTH];
 
     if (argc == 2) {
         for (i = 0; argv[1][i] != '\0'; ++i) {
@@ -99,30 +101,89 @@ int main(int argc, char *argv[]) {
     drawMap(gameWindow, fd);
     loadStateWindowEditor(stateWindow, fd);
 
-    while ((i = getch()) != KEY_F(2)) {
-        if ((i == KEY_MOUSE) && (mouse_getpos(&mouseX, &mouseY, NULL) == OK)) {
-            /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX */
+    while ((ch = getch()) != KEY_F(2)) {
+        if ((ch == KEY_MOUSE) && (mouse_getpos(&mouseX, &mouseY, &event) == OK)) {
+            /* If not false, the click was in the window and the new coordinates are in the mouseY and mouseX variables */
             if(wmouse_trafo(gameWindow, &mouseY, &mouseX, FALSE) != FALSE) {
-                /* Get the relative x position (depends on SQUARE_WIDTH) */
+                /* Get the relative x position (based on SQUARE_WIDTH) */
                 relativeXPosition = mouseX / SQUARE_WIDTH;
 
-                if(cpt != 0)
-                    wprintw(informationWindow, "\n");
+                /* Right click can be used to set multiple walls at the same time: horizontally, vertically or as a corner */
+                if (event & BUTTON3_CLICKED) {
+                    wallType = getNextWallAt(fd, relativeXPosition, mouseY, TRUE);
 
-                type = changeWallEditor(fd, relativeXPosition, mouseY);
+                    if (firstRightClick) {
+                        wallType = setWallAt(fd, relativeXPosition, mouseY, wallType);
 
-                if(type >= 0) {
-                    wprintw(informationWindow, "Changed a wall at (%d, %d)", relativeXPosition, mouseY);
-                    wrefresh(informationWindow);
-                    drawWall(gameWindow, type, relativeXPosition * SQUARE_WIDTH, mouseY, true);
+                        if (wallType != UNCHANGED) {
+                            drawSquare(gameWindow, wallType, makeMultipleOf(mouseX, SQUARE_WIDTH), mouseY, TRUE);
+                        }
 
-                    if(type == EMPTY_SQUARE || type == INVISIBLE_WALL) {
-                        updateWallCount(stateWindow, fd);
+                        mouseXPreviousClick = makeMultipleOf(mouseX, SQUARE_WIDTH);
+                        mouseYPreviousClick = mouseY;
+
+                        edited = TRUE;
+                        firstRightClick = FALSE;
                     }
 
-                    cpt++;
-                    edited = 1;
+                    else {
+                        dX = makeMultipleOf(abs(mouseXPreviousClick - mouseX), SQUARE_WIDTH);
+                        dY = abs(mouseYPreviousClick - mouseY);
+
+                        while (dX > 0) {
+                            mouseX = mouseXPreviousClick >= mouseX ? mouseXPreviousClick - dX : mouseXPreviousClick + dX;
+
+                            wallType = changeWallEditor(fd, mouseX / SQUARE_WIDTH, mouseYPreviousClick);
+
+                            if (wallType != UNCHANGED) {
+                                drawSquare(gameWindow, wallType, mouseX, mouseYPreviousClick, TRUE);
+                            }
+
+                            dX -= SQUARE_WIDTH;
+                            edited = TRUE;
+                        }
+
+                        while (dY > 0) {
+                            mouseY = mouseYPreviousClick >= mouseY ? mouseYPreviousClick - dY : mouseYPreviousClick + dY;
+
+                            wallType = changeWallEditor(fd, mouseXPreviousClick / SQUARE_WIDTH, mouseY);
+
+                            if (wallType != UNCHANGED) {
+                                drawSquare(gameWindow, wallType, mouseXPreviousClick, mouseY, true);
+                            }
+
+                            dY--;
+                            edited = TRUE;
+                        }
+
+                        /* Reset the right click variable for the next one */
+                        firstRightClick = TRUE;
+                    }
                 }
+
+                /* Or with other mouse buttons, wall per wall */
+                else {
+                    /* Reset the right click (aka cancels the previous right click if the user then clicked left) */
+                    firstRightClick = TRUE;
+                    if(cpt != 0)
+                        wprintw(informationWindow, "\n");
+
+                    wallType = changeWallEditor(fd, relativeXPosition, mouseY);
+
+                    if(wallType >= 0) {
+                        if (wallType != UNCHANGED) {
+                            wprintw(informationWindow, "Changed a wall at (%d, %d)", relativeXPosition, mouseY);
+                            wrefresh(informationWindow);
+
+                            drawSquare(gameWindow, wallType, relativeXPosition * SQUARE_WIDTH, mouseY, true);
+                        }
+
+                        cpt++;
+                        edited = TRUE;
+                    }
+                }
+
+                updateWallCount(stateWindow, fd);
             }
 
             /* Click was in the state window */
@@ -132,14 +193,14 @@ int main(int argc, char *argv[]) {
 
                 if (mouseX >= PLUS_SIGN_POS_X && mouseX <= PLUS_SIGN_POS_X + 2 && mouseY == PLUS_SIGN_POS_Y) {
                     wprintw(informationWindow, "Added a life");
-                    increaseLives(fd);
-                    edited = 1;
+                    increaseTotalLives(fd);
+                    edited = TRUE;
                 }
 
                 else if (mouseX >= MINUS_SIGN_POS_X && mouseX <= MINUS_SIGN_POS_X + 2 && mouseY == MINUS_SIGN_POS_Y) {
                     wprintw(informationWindow, "Removed a life");
-                    decreaseLives(fd);
-                    edited = 1;
+                    decreaseTotalLives(fd);
+                    edited = TRUE;
                 }
 
                 wrefresh(informationWindow);
