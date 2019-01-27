@@ -13,5 +13,6 @@ unsigned char getNextWallGame(unsigned char type);
 void updateDiscoveredWalls(WINDOW *window, int fd);
 void updateMoves(WINDOW *window, int fd);
 void updateLivesLeft(WINDOW *window, int fd);
+void discoverAllWalls(WINDOW *window, int fd);
 
 #endif

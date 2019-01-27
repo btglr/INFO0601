@@ -206,6 +206,26 @@ void updateLivesLeft(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 2, "Lives: %d", getRemainingLives(fd));
 }
 
+void discoverAllWalls(WINDOW *window, int fd) {
+    ssize_t bytesRead;
+    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
+    int i, initialPadding = sizeof(int) + sizeof(unsigned char), x, y;
+
+    if ((bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char))) > 0) {
+        for (i = 0; i < bytesRead; ++i) {
+            if (buffer[i] == INVISIBLE_WALL) {
+                x = (i % MAP_WIDTH) * SQUARE_WIDTH;
+                y = i / MAP_WIDTH;
+
+                changeWallGame(fd, x, y);
+                drawSquare(window, DISCOVERED_WALL, x, y, FALSE);
+            }
+        }
+
+        wrefresh(window);
+    }
+}
+
 /*unsigned char getPlayerXPosition(int fd) {
     unsigned char xPos;
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
