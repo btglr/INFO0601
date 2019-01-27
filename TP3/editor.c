@@ -3,7 +3,6 @@
 #include <curses.h>
 #include "mapEditor.h"
 #include "fileUtils.h"
-#include "ncursesUtils.h"
 #include "ncurses.h"
 #include "windowDrawer.h"
 #include "constants.h"
