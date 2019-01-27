@@ -9,9 +9,9 @@
 #include "mapEditor.h"
 #include "fileUtils.h"
 #include "constants.h"
-#include "gameManager.h"
 #include "ncurses.h"
-
+#include "mapUtils.h"
+#include "windowDrawer.h"
 
 /**
  * Initializes a new map with a default number of lives, a map version and all the squares as 0
@@ -29,7 +29,7 @@ void initializeMap(int fd) {
     /* Set the entrance to a visited square so it is clearly identified */
     buffer[Y_POS_BEGINNING * MAP_WIDTH + X_POS_BEGINNING] = VISITED_SQUARE;
 
-    mapVersion = 1;
+    mapVersion = DEFAULT_MAP_VERSION;
     lives = DEFAULT_LIVES;
     writeFile(fd, &mapVersion, sizeof(int));
     writeFile(fd, &lives, sizeof(unsigned char));
@@ -66,106 +66,22 @@ int loadMapEditor(char *mapName) {
     return fd;
 }
 
-int changeWallEditor(int fd, int x, int y) {
-    unsigned char originalType, type;
-    /* Map version + number of lives */
-    int initialPadding = sizeof(int) + sizeof(unsigned char);
-    int offset, res;
 
-    /* If the given coordinates are within the map */
-    if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT)) {
-        offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
-
-        readFileOff(fd, &originalType, offset, SEEK_SET, sizeof(unsigned char));
-
-        switch(originalType) {
-            case EMPTY_SQUARE:
-                type = INVISIBLE_WALL;
-                break;
-
-            case INVISIBLE_WALL:
-                type = VISIBLE_WALL;
-                break;
-
-            case VISIBLE_WALL:
-                type = EMPTY_SQUARE;
-                break;
-
-            case VISITED_SQUARE:
-            default:
-                type = originalType;
-        }
-
-        /* If the coordinates aren't corresponding to the entry or exit we write the type to the corresponding position */
-        if ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END)) {
-            writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
-            res = type;
-        }
-
-        else {
-            res = -1;
-        }
-    }
-
-    else {
-        res = -1;
-    }
-
-    return res;
+unsigned char changeWallEditor(int fd, int x, int y) {
+    return setWallAt(fd, x, y, getNextWallAt(fd, x, y, TRUE));
 }
 
 void updateWallCount(WINDOW *window, int fd) {
-    updateStateWindowEditor(window, 1, 2, "Walls: ", getWallCount(fd));
+    updateStateWindow(window, 1, 2, "Walls: %d", getWallCount(fd, -1));
 }
 
 void updateLivesCount(WINDOW *window, int fd) {
-    updateStateWindowEditor(window, 1, 1, "Lives: ", getLives(fd));
-}
-
-void decreaseLives(int fd) {
-    unsigned char lives = getLives(fd);
-
-    if(lives > 0) {
-        lives--;
-        writeFileOff(fd, &lives, sizeof(int), SEEK_SET, sizeof(unsigned char));
-    }
-}
-
-void increaseLives(int fd) {
-    unsigned char lives = getLives(fd);
-
-    if (lives < 255) {
-        lives++;
-        writeFileOff(fd, &lives, sizeof(int), SEEK_SET, sizeof(unsigned char));
-    }
-}
-
-int getWallCount(int fd) {
-    int i, wallCount = 0;
-    int initialPadding = sizeof(int) + sizeof(unsigned char);
-    ssize_t bytesRead;
-    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
-
-    bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
-
-    for(i = 0; i < bytesRead; ++i) {
-        wallCount = (buffer[i] == VISIBLE_WALL || buffer[i] == INVISIBLE_WALL) ? wallCount + 1 : wallCount;
-    }
-
-    return wallCount;
-}
-
-unsigned char getLives(int fd) {
-    unsigned char lives;
-
-    readFileOff(fd, &lives, sizeof(int), SEEK_SET, sizeof(unsigned char));
-
-    return lives;
+    updateStateWindow(window, 1, 1, "Lives: %d", getTotalLives(fd));
 }
 
 void loadStateWindowEditor(WINDOW *window, int fd) {
-    updateStateWindowEditor(window, 1, 1, "Lives: ", getLives(fd));
-    updateStateWindowEditor(window, 1, 2, "Walls: ", getWallCount(fd));
+    updateStateWindow(window, 1, 1, "Lives: %d", getTotalLives(fd));
+    updateStateWindow(window, 1, 2, "Walls: %d", getWallCount(fd, -1));
 
     wattron(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
     mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X, ACS_HLINE | WA_BOLD);
@@ -195,23 +111,28 @@ void loadStateWindowEditor(WINDOW *window, int fd) {
     wrefresh(window);
 }
 
-void updateStateWindowEditor(WINDOW *window, int x, int y, char *s, int value) {
-    size_t length = strlen(s);
+unsigned char getNextWallEditor(unsigned char type) {
+    unsigned char nextType;
 
-    mvwprintw(window, y, x, s);
+    switch(type) {
+        case EMPTY_SQUARE:
+            nextType = INVISIBLE_WALL;
+            break;
 
-    /* Print additional spaces to clear any remaining numbers */
-    mvwprintw(window, y, (int) (x + length), "%d  ", value);
+        case INVISIBLE_WALL:
+            nextType = VISIBLE_WALL;
+            break;
 
-    wrefresh(window);
-}
+        case VISIBLE_WALL:
+            nextType = EMPTY_SQUARE;
+            break;
 
-void increaseMapVersion(int fd) {
-    int mapVersion;
+        case VISITED_SQUARE:
+        default:
+            nextType = type;
+    }
 
-    readFileOff(fd, &mapVersion, 0, SEEK_SET, sizeof(int));
-    mapVersion++;
-    writeFileOff(fd, &mapVersion, 0, SEEK_SET, sizeof(int));
+    return nextType;
 }
 
 /*int setWall(int fd, unsigned char type, int x, int y) {
