@@ -8,11 +8,12 @@
 #include "mapEditor.h"
 #include "fileUtils.h"
 #include "gameManager.h"
+#include "mapUtils.h"
 
 int main(int argc, char *argv[]) {
-    int i, fd, origPosX, origPosY, posX, posY, newSquare, remainingLives, cpt = 0;
-    char *gameOver = GAME_OVER;
+    int i, fd, newSquare, remainingLives, cpt = 0;
     char filename[256];
+    unsigned char posX, posY, origPosX, origPosY;
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
     if (argc == 2) {
@@ -40,9 +41,12 @@ int main(int argc, char *argv[]) {
     clear();
     refresh();
 
-    init_pair(PAIR_COLOR_PLAYER, COLOR_PLAYER, COLOR_PLAYER);
+    init_pair(PAIR_COLOR_PLAYER, COLOR_WHITE, COLOR_PLAYER);
     init_pair(PAIR_COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
     init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);
+
+    /* To make invisible walls actually invisible */
+    /*init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);*/
     init_pair(PAIR_COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
     init_pair(PAIR_COLOR_PLUS_SIGN, COLOR_GREEN, COLOR_BLACK);
     init_pair(PAIR_COLOR_MINUS_SIGN, COLOR_RED, COLOR_BLACK);
@@ -80,7 +84,6 @@ int main(int argc, char *argv[]) {
             BORDER_GAME_WINDOW_WIDTH + 1,
             BORDER_INFORMATION_WINDOW_HEIGHT + 1);
 
-
     scrollok(informationWindow, true);
 
     box(borderInformationWindow, 0, 0);
@@ -101,85 +104,105 @@ int main(int argc, char *argv[]) {
     fd = loadGame(filename);
 
     drawMap(gameWindow, fd);
-    loadStateWindowManager(stateWindow, fd);
+    loadStateWindowManager(stateWindow);
 
-    posX = X_POS_BEGINNING;
-    posY = Y_POS_BEGINNING;
+    getPlayerPosition(fd, &posX, &posY);
+
+    remainingLives = getRemainingLives(fd);
+
+    if (remainingLives == 0) {
+        printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_LOST);
+    }
+    else if (posX == X_POS_END && posY == Y_POS_END) {
+        printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_WON);
+    }
+
+    posX *= SQUARE_WIDTH;
+    /* Draw the player at the last saved position */
+    drawSquare(gameWindow, PLAYER_SQUARE, posX, posY, true);
+    updateMoves(stateWindow, fd);
+    updateLivesLeft(stateWindow, fd);
+    updateDiscoveredWalls(stateWindow, fd);
 
     while ((i = getch()) != KEY_F(2)) {
         origPosX = posX;
         origPosY = posY;
 
-        wattron(gameWindow, COLOR_PAIR(PAIR_COLOR_VISITED_SQUARE));
-        mvwprintw(gameWindow, posY, posX, "  ");
-        wattroff(gameWindow, COLOR_PAIR(PAIR_COLOR_VISITED_SQUARE));
+        if (remainingLives != 0 && (posX / SQUARE_WIDTH != X_POS_END || posY != Y_POS_END)) {
+            /* Draw the visited square */
+            drawSquare(gameWindow, VISITED_SQUARE, posX, posY, FALSE);
 
-        switch(i) {
-            case KEY_LEFT:
-                if (posX / SQUARE_WIDTH > 0)
-                    posX -= SQUARE_WIDTH;
-                break;
-            case KEY_RIGHT:
-                if (posX / SQUARE_WIDTH < MAP_WIDTH - 1)
-                    posX += SQUARE_WIDTH;
-                break;
-            case KEY_UP:
-                if (posY > 0)
-                    posY--;
-                break;
-            case KEY_DOWN:
-                if (posY < MAP_HEIGHT - 1)
-                    posY++;
-                break;
+            switch(i) {
+                case KEY_LEFT:
+                    if (posX / SQUARE_WIDTH > 0)
+                        posX -= SQUARE_WIDTH;
+                    break;
+                case KEY_RIGHT:
+                    if (posX / SQUARE_WIDTH < MAP_WIDTH - 1)
+                        posX += SQUARE_WIDTH;
+                    break;
+                case KEY_UP:
+                    if (posY > 0)
+                        posY--;
+                    break;
+                case KEY_DOWN:
+                    if (posY < MAP_HEIGHT - 1)
+                        posY++;
+                    break;
+            }
+
+            newSquare = movePlayer(fd, posX / SQUARE_WIDTH, posY);
+
+            switch (newSquare) {
+                case VISITED_SQUARE:
+                    if (posX / SQUARE_WIDTH == X_POS_END && posY == Y_POS_END) {
+                        printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_WON);
+                    }
+
+                    /* Player has moved, display the current square as the player's position/color */
+                    drawSquare(gameWindow, PLAYER_SQUARE, posX, posY, TRUE);
+                    updateMoves(stateWindow, fd);
+
+                    break;
+
+                case DISCOVERED_WALL:
+                    /* Player has hit an invisible that has become "discovered", draw it as such */
+                    drawSquare(gameWindow, DISCOVERED_WALL, posX, posY, TRUE);
+
+                    updateLivesLeft(stateWindow, fd);
+                    updateDiscoveredWalls(stateWindow, fd);
+
+                    remainingLives = getRemainingLives(fd);
+
+                    if (remainingLives == 0) {
+                        printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_LOST);
+                    }
+
+                    else {
+                        if(cpt != 0)
+                            wprintw(informationWindow, "\n");
+
+                        wprintw(informationWindow, "Lost one life, %d remaining!", remainingLives);
+                        wrefresh(informationWindow);
+
+                        cpt++;
+                    }
+
+                case -1:
+                    /* We either encountered a wall or there was an error, so simply set the position back to what it was before the move */
+                    posX = origPosX;
+                    posY = origPosY;
+
+                    drawSquare(gameWindow, PLAYER_SQUARE, posX, posY, TRUE);
+
+                    break;
+
+                default:
+                    break;
+            }
         }
 
-        newSquare = movePlayer(fd, posX / SQUARE_WIDTH, posY);
-
-        switch (newSquare) {
-            case VISITED_SQUARE:
-                /* Player has moved, display the current square as the player's position/color */
-                drawWall(gameWindow, PLAYER_SQUARE, posX, posY, true);
-                updateStateWindowManager(stateWindow, 1, 1, "Moves: ", getVisitedSquares(fd));
-
-                break;
-
-            case DISCOVERED_WALL:
-                /* Player has hit an invisible that has become "discovered", draw it as such */
-                drawWall(gameWindow, DISCOVERED_WALL, posX, posY, true);
-                updateStateWindowManager(stateWindow, 1, 2, "Lives: ", getRemainingLives(fd));
-                updateStateWindowManager(stateWindow, 1, 3, "Walls: ", getWallCount(fd));
-
-                remainingLives = getRemainingLives(fd);
-
-                if (remainingLives == 0) {
-                    printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, gameOver);
-                }
-
-                else {
-                    if(cpt != 0)
-                        wprintw(informationWindow, "\n");
-
-                    wprintw(informationWindow, "Lost one life, %d remaining!", remainingLives);
-                    wrefresh(informationWindow);
-
-                    cpt++;
-                }
-
-            case -1:
-                /* We either encountered a wall or there was an error, so simply set the position back to what it was before the move */
-                posX = origPosX;
-                posY = origPosY;
-
-                wattron(gameWindow, COLOR_PAIR(PAIR_COLOR_PLAYER));
-                mvwprintw(gameWindow, posY, posX, "  ");
-                wattroff(gameWindow, COLOR_PAIR(PAIR_COLOR_PLAYER));
-                wrefresh(gameWindow);
-
-                break;
-
-            default:
-                break;
-        }
+        wrefresh(gameWindow);
     }
 
     closeFile(fd);
