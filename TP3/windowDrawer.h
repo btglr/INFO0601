@@ -3,8 +3,10 @@
 
 WINDOW* initializeWindow(int width, int height, int x, int y);
 WINDOW* initializeSubWindow(WINDOW *window, int width, int height, int x, int y);
-void drawWall(WINDOW *window, int type, int x, int y, bool refresh);
+void drawSquare(WINDOW *window, int type, int x, int y, bool refresh);
 void drawMap(WINDOW *window, int fd);
 void printInMiddle(WINDOW *window, int maxWidth, int maxHeight, char *text);
+void updateStateWindow(WINDOW *window, int x, int y, char *s, ...);
+void clearLine(WINDOW *window, int x, int y);
 
 #endif
