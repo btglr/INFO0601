@@ -84,7 +84,7 @@ void drawMap(WINDOW *window, int fd) {
 }
 
 void printInMiddle(WINDOW *window, int maxWidth, int maxHeight, char *text) {
-    size_t length = strlen(text);
+    int length = (int) strlen(text);
 
     mvwprintw(window, maxHeight / 2, (maxWidth * SQUARE_WIDTH) / 2 - length / 2, text);
     wrefresh(window);
