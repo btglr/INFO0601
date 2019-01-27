@@ -3,8 +3,8 @@
 #
 
 EXEC = editor game
-OBJETS = ncurses.o fileUtils.o ncursesUtils.o gameManager.o windowDrawer.o mapEditor.o
-NOM_PROJET = TP1
+OBJETS = ncurses.o fileUtils.o gameManager.o mapEditor.o mapUtils.o windowDrawer.o
+NOM_PROJET = TP3_MINI_PROJET
 
 #
 # SUFFIXES
@@ -85,18 +85,22 @@ depend:
 ARCHIVE_FILES = *
 
 archive: clean
-	@echo "Creation de l'archive $(NOM_PROJET)$(shell date '+%y%m%d.tar.gz')..."
+	@echo "Creation de l'archive $(NOM_PROJET)_$(shell date '+%y%m%d.tar.gz')..."
 	@REP=`basename "$$PWD"`; cd .. && tar zcf $(NOM_PROJET)_$(shell date '+%y%m%d.tar.gz') $(addprefix "$$REP"/,$(ARCHIVE_FILES))
 	@echo "Termine."
 
 # DEPENDANCES
 ncurses.o: ncurses.c ncurses.h
-fileUtils.o: fileUtils.c fileUtils.h
-ncursesUtils.o: ncursesUtils.c ncursesUtils.h
-gameManager.o: gameManager.c gameManager.h
+fileUtils.o: fileUtils.c fileUtils.h ncurses.h
+gameManager.o: gameManager.c gameManager.h fileUtils.h constants.h \
+ ncurses.h mapEditor.h mapUtils.h windowDrawer.h
+mapEditor.o: mapEditor.c mapEditor.h fileUtils.h constants.h ncurses.h \
+ mapUtils.h windowDrawer.h
+mapUtils.o: mapUtils.c mapUtils.h constants.h fileUtils.h mapEditor.h \
+ gameManager.h
 windowDrawer.o: windowDrawer.c windowDrawer.h mapEditor.h ncurses.h \
- fileUtils.h constants.h
-mapEditor.o: mapEditor.c mapEditor.h fileUtils.h constants.h
-editor.o: editor.c mapEditor.h fileUtils.h ncursesUtils.h ncurses.h \
- windowDrawer.h constants.h
-game.o: game.c
+ fileUtils.h constants.h mapUtils.h
+editor.o: editor.c mapEditor.h fileUtils.h ncurses.h windowDrawer.h \
+ constants.h mapUtils.h
+game.o: game.c ncurses.h constants.h windowDrawer.h mapEditor.h \
+ fileUtils.h gameManager.h mapUtils.h
