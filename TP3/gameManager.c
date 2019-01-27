@@ -194,6 +194,24 @@ unsigned char changeWallGame(int fd, int x, int y) {
     return res;
 }
 
+void changeAllWalls(int fd, unsigned char type) {
+    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
+    /* Map version + number of lives */
+    int initialPadding = sizeof(int) + sizeof(unsigned char), i;
+    ssize_t bytesRead;
+
+    if ((bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char))) > 0) {
+        for (i = 0; i < bytesRead; ++i) {
+            if (buffer[i] == type) {
+                buffer[i] = getNextWallGame(type);
+            }
+        }
+
+        writeFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
+    }
+
+}
+
 void updateDiscoveredWalls(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 3, "Walls: %d/%d", getWallCount(fd, DISCOVERED_WALL), getWallCount(fd, INVISIBLE_WALL) + getWallCount(fd, DISCOVERED_WALL));
 }
@@ -207,23 +225,8 @@ void updateLivesLeft(WINDOW *window, int fd) {
 }
 
 void discoverAllWalls(WINDOW *window, int fd) {
-    ssize_t bytesRead;
-    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
-    int i, initialPadding = sizeof(int) + sizeof(unsigned char), x, y;
-
-    if ((bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char))) > 0) {
-        for (i = 0; i < bytesRead; ++i) {
-            if (buffer[i] == INVISIBLE_WALL) {
-                x = (i % MAP_WIDTH) * SQUARE_WIDTH;
-                y = i / MAP_WIDTH;
-
-                changeWallGame(fd, x, y);
-                drawSquare(window, DISCOVERED_WALL, x, y, FALSE);
-            }
-        }
-
-        wrefresh(window);
-    }
+    changeAllWalls(fd, INVISIBLE_WALL);
+    drawMap(window, fd);
 }
 
 /*unsigned char getPlayerXPosition(int fd) {

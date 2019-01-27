@@ -9,6 +9,7 @@ int movePlayer(int fd, int newX, int newY);
 int loseLife(int fd);
 void loadStateWindowGame(WINDOW *window);
 unsigned char changeWallGame(int fd, int x, int y);
+void changeAllWalls(int fd, unsigned char type);
 unsigned char getNextWallGame(unsigned char type);
 void updateDiscoveredWalls(WINDOW *window, int fd);
 void updateMoves(WINDOW *window, int fd);
