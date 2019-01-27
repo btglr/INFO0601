@@ -43,10 +43,10 @@ int main(int argc, char *argv[]) {
 
     init_pair(PAIR_COLOR_PLAYER, COLOR_WHITE, COLOR_PLAYER);
     init_pair(PAIR_COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
-    init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);
+    /*init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);*/
 
     /* To make invisible walls actually invisible */
-    /*init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);*/
+    init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
     init_pair(PAIR_COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE, COLOR_EMPTY_SQUARE);
     init_pair(PAIR_COLOR_PLUS_SIGN, COLOR_GREEN, COLOR_BLACK);
     init_pair(PAIR_COLOR_MINUS_SIGN, COLOR_RED, COLOR_BLACK);
@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     fd = loadGame(filename);
 
     drawMap(gameWindow, fd);
-    loadStateWindowManager(stateWindow);
+    loadStateWindowGame(stateWindow);
 
     getPlayerPosition(fd, &posX, &posY);
 

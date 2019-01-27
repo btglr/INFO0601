@@ -128,7 +128,7 @@ int loseLife(int fd) {
     return remainingLives;
 }
 
-void loadStateWindowManager(WINDOW *window) {
+void loadStateWindowGame(WINDOW *window) {
     wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
     mvwprintw(window, 5, 1, "  ");
     wattroff(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));

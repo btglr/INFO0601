@@ -7,7 +7,7 @@
 int loadGame(char *filename);
 int movePlayer(int fd, int newX, int newY);
 int loseLife(int fd);
-void loadStateWindowManager(WINDOW *window);
+void loadStateWindowGame(WINDOW *window);
 unsigned char changeWallGame(int fd, int x, int y);
 unsigned char getNextWallGame(unsigned char type);
 void updateDiscoveredWalls(WINDOW *window, int fd);
