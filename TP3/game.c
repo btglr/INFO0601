@@ -156,6 +156,7 @@ int main(int argc, char *argv[]) {
             switch (newSquare) {
                 case VISITED_SQUARE:
                     if (posX / SQUARE_WIDTH == X_POS_END && posY == Y_POS_END) {
+                        discoverAllWalls(gameWindow, fd);
                         printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_WON);
                     }
 
