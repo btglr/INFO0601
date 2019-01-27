@@ -5,9 +5,11 @@
 #define Y_POS_BEGINNING 8
 #define X_POS_END 29
 #define Y_POS_END 8
+#define DEFAULT_MAP_VERSION 0
 #define DEFAULT_LIVES 10
 #define MAP_WIDTH 30
 #define MAP_HEIGHT 15
+#define UNCHANGED 255
 #define EMPTY_SQUARE 0
 #define INVISIBLE_WALL 1
 #define VISIBLE_WALL 2
@@ -42,6 +44,7 @@
 #define MINUS_SIGN_POS_X 18
 #define MINUS_SIGN_POS_Y 1
 #define MAX_FILENAME_LENGTH 256
-#define GAME_OVER "Game Over. You lost!"
+#define GAME_OVER_LOST "Game Over. You lost!"
+#define GAME_OVER_WON "Game Over. You won!"
 
 #endif
