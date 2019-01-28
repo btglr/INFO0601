@@ -5,7 +5,7 @@
 #include <sys/types.h>
 
 int loadGame(char *filename);
-int movePlayer(int fd, int newX, int newY);
+unsigned char movePlayer(int fd, int newX, int newY);
 int loseLife(int fd);
 void loadStateWindowGame(WINDOW *window);
 unsigned char changeWallGame(int fd, int x, int y);

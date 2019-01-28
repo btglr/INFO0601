@@ -11,9 +11,9 @@
 #include "mapUtils.h"
 
 int main(int argc, char *argv[]) {
-    int i, fd, newSquare, remainingLives, cpt = 0;
+    int i, fd, remainingLives, cpt = 0;
     char filename[256];
-    unsigned char posX, posY, origPosX, origPosY;
+    unsigned char posX, posY, origPosX, origPosY, newSquare;
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
 
     if (argc == 2) {
@@ -189,7 +189,7 @@ int main(int argc, char *argv[]) {
                         cpt++;
                     }
 
-                case -1:
+                case UNCHANGED:
                     /* We either encountered a wall or there was an error, so simply set the position back to what it was before the move */
                     posX = origPosX;
                     posY = origPosY;

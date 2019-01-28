@@ -11,6 +11,11 @@
 #include "mapUtils.h"
 #include "windowDrawer.h"
 
+/**
+ * Loads the filename whether it be a save file or a map file
+ * @param filename The file to load
+ * @return A file descriptor to the file
+ */
 int loadGame(char *filename) {
     int saveFd, mapFd, mapVersion;
     unsigned char remainingLives;
@@ -76,9 +81,16 @@ int loadGame(char *filename) {
     return saveFd;
 }
 
-int movePlayer(int fd, int newX, int newY) {
-    unsigned char wall;
-    int initialPadding = sizeof(int) + sizeof(unsigned char), offset, newSquare = -1;
+/**
+ * Moves the player to the given coordinates
+ * @param fd The file descriptor of the save
+ * @param newX The new X coordinate of the player
+ * @param newY The new Y coordinate of the player
+ * @return The new square where the player is now positioned, or UNCHANGED
+ */
+unsigned char movePlayer(int fd, int newX, int newY) {
+    unsigned char wall, newSquare = UNCHANGED;
+    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
     ssize_t bytesRead;
 
     if (newX >= 0 && newX < MAP_WIDTH && newY >= 0 && newY < MAP_HEIGHT) {
