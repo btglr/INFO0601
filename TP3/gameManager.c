@@ -11,11 +11,6 @@
 #include "mapUtils.h"
 #include "windowDrawer.h"
 
-/**
- * Loads the filename whether it be a save file or a map file
- * @param filename The file to load
- * @return A file descriptor to the file save
- */
 int loadGame(char *filename) {
     int saveFd, mapFd, mapVersion;
     unsigned char remainingLives;
@@ -81,13 +76,6 @@ int loadGame(char *filename) {
     return saveFd;
 }
 
-/**
- * Moves the player to the given coordinates
- * @param fd The file descriptor of the save file
- * @param newX The new X coordinate of the player
- * @param newY The new Y coordinate of the player
- * @return The new square where the player is now positioned, or UNCHANGED
- */
 unsigned char movePlayer(int fd, int newX, int newY) {
     unsigned char wall, newSquare = UNCHANGED;
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
@@ -128,11 +116,6 @@ unsigned char movePlayer(int fd, int newX, int newY) {
     return newSquare;
 }
 
-/**
- * Removes one life from the player
- * @param fd The file descriptor of the save file
- * @return The number of lives remaining
- */
 int loseLife(int fd) {
     unsigned char remainingLives = getRemainingLives(fd);
 
@@ -145,10 +128,6 @@ int loseLife(int fd) {
     return remainingLives;
 }
 
-/**
- * Loads the initial state window for the game executable
- * @param window The window to load it in
- */
 void loadStateWindowGame(WINDOW *window) {
     wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
     mvwprintw(window, 5, 1, "  ");
@@ -171,11 +150,6 @@ void loadStateWindowGame(WINDOW *window) {
     wrefresh(window);
 }
 
-/**
- * Gets the next wall type for the game executable
- * @param type The current type of the wall
- * @return The next type of the wall
- */
 unsigned char getNextWallGame(unsigned char type) {
     unsigned char nextType;
 
@@ -197,13 +171,6 @@ unsigned char getNextWallGame(unsigned char type) {
     return nextType;
 }
 
-/**
- * Changes the wall type for the game executable
- * @param fd The file descriptor of the save file
- * @param x The x position of the wall
- * @param y The y position of the wall
- * @return The new wall type
- */
 unsigned char changeWallGame(int fd, int x, int y) {
     unsigned char originalType, nextType, res = UNCHANGED;
     /* Map version + number of lives */
@@ -227,11 +194,7 @@ unsigned char changeWallGame(int fd, int x, int y) {
     return res;
 }
 
-/**
- * Changes all walls of a given type to the next type
- * @param fd The file descriptor of the save file
- * @param type The type of the walls we want to change to the next one
- */
+
 void changeAllWalls(int fd, unsigned char type) {
     unsigned char buffer[MAP_WIDTH * MAP_HEIGHT], nextType = getNextWallGame(type);
     /* Map version + number of lives */
@@ -250,49 +213,23 @@ void changeAllWalls(int fd, unsigned char type) {
 
 }
 
-/**
- * Updates the state window with the current amount of discovered walls
- * @param window The window to update
- * @param fd The file descriptor of the save file
- */
 void updateDiscoveredWalls(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 3, "Walls: %d/%d", getWallCount(fd, DISCOVERED_WALL), getWallCount(fd, INVISIBLE_WALL) + getWallCount(fd, DISCOVERED_WALL));
 }
 
-/**
- * Updates the state window with the current amount of moves
- * @param window The window to update
- * @param fd The file descriptor of the save file
- */
 void updateMoves(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 1, "Moves: %d", getWallCount(fd, VISITED_SQUARE));
 }
 
-/**
- * Updates the state window with the current and total amount of lives
- * @param window The window to update
- * @param fd The file descriptor of the save file
- */
 void updateLivesLeft(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 2, "Lives: %d/%d", getRemainingLives(fd), getTotalLives(fd));
 }
 
-/**
- * Discovers all invisible walls (at the end of the game...)
- * @param window The game window to update
- * @param fd The file descriptor of the save file
- */
 void discoverAllWalls(WINDOW *window, int fd) {
     changeAllWalls(fd, INVISIBLE_WALL);
     drawMap(window, fd);
 }
 
-/**
- * Gets the player position
- * @param fd The file descriptor of the save file
- * @param x The variable that will contain the x position
- * @param y The variable that will contain the y position
- */
 void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
     offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
@@ -306,12 +243,6 @@ void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
     }
 }
 
-/**
- * Sets the player position
- * @param fd The file descriptor of the save file
- * @param x The new x position
- * @param y The new y position
- */
 void setPlayerPosition(int fd, int x, int y) {
     unsigned char buf[2];
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
@@ -323,11 +254,6 @@ void setPlayerPosition(int fd, int x, int y) {
     writeFileOff(fd, buf, offset, SEEK_SET, 2 * sizeof(unsigned char));
 }
 
-/**
- * Gets the amount of remaining lives
- * @param fd The file descriptor of the save file
- * @return The amount of remaining lives
- */
 unsigned char getRemainingLives(int fd) {
     unsigned char remainingLives;
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
@@ -340,12 +266,6 @@ unsigned char getRemainingLives(int fd) {
     return remainingLives;
 }
 
-/**
- * Sets the amount of remaining lives
- * @param fd The file descriptor of the save file
- * @param lives The amount of lives to set
- * @return The number of bytes written
- */
 ssize_t setRemainingLives(int fd, unsigned char lives) {
     ssize_t bytesWritten;
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
