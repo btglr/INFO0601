@@ -265,7 +265,7 @@ void updateDiscoveredWalls(WINDOW *window, int fd) {
  * @param fd The file descriptor of the save file
  */
 void updateMoves(WINDOW *window, int fd) {
-    updateStateWindow(window, 1, 1, "Moves: %d", getVisitedSquares(fd));
+    updateStateWindow(window, 1, 1, "Moves: %d", getWallCount(fd, VISITED_SQUARE));
 }
 
 /**

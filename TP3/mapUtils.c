@@ -5,6 +5,11 @@
 #include "mapEditor.h"
 #include "gameManager.h"
 
+/**
+ * Gets the total number of lives in the file
+ * @param fd The file descriptor of the save file
+ * @return The number of lives
+ */
 unsigned char getTotalLives(int fd) {
     unsigned char totalLives;
 
@@ -33,23 +38,6 @@ ssize_t setRemainingLives(int fd, unsigned char lives) {
     bytesWritten = writeFileOff(fd, &lives, offset, SEEK_SET, sizeof(unsigned char));
 
     return bytesWritten;
-}
-
-int getVisitedSquares(int fd) {
-    ssize_t bytesRead;
-    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
-    int i, visitedSquares = 0;
-    int initialPadding = sizeof(int) + sizeof(unsigned char);
-
-    if ((bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char))) > 0) {
-        for (i = 0; i < bytesRead; ++i) {
-            if (buffer[i] == VISITED_SQUARE) {
-                visitedSquares++;
-            }
-        }
-    }
-
-    return visitedSquares;
 }
 
 int getMapVersion(int fd) {
@@ -101,6 +89,10 @@ int getWallCount(int fd, int type) {
 
             case DISCOVERED_WALL:
                 wallCount = (buffer[i] == DISCOVERED_WALL) ? wallCount + 1 : wallCount;
+                break;
+
+            case VISITED_SQUARE:
+                wallCount = (buffer[i] == VISITED_SQUARE) ? wallCount + 1 : wallCount;
                 break;
 
             default:

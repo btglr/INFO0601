@@ -5,7 +5,6 @@ unsigned char getTotalLives(int fd);
 unsigned char getRemainingLives(int fd);
 int getMapVersion(int fd);
 ssize_t setRemainingLives(int fd, unsigned char lives);
-int getVisitedSquares(int fd);
 
 void increaseTotalLives(int fd);
 void decreaseTotalLives(int fd);
