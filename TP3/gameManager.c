@@ -323,6 +323,11 @@ void setPlayerPosition(int fd, int x, int y) {
     writeFileOff(fd, buf, offset, SEEK_SET, 2 * sizeof(unsigned char));
 }
 
+/**
+ * Gets the amount of remaining lives
+ * @param fd The file descriptor of the save file
+ * @return The amount of remaining lives
+ */
 unsigned char getRemainingLives(int fd) {
     unsigned char remainingLives;
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
@@ -335,6 +340,12 @@ unsigned char getRemainingLives(int fd) {
     return remainingLives;
 }
 
+/**
+ * Sets the amount of remaining lives
+ * @param fd The file descriptor of the save file
+ * @param lives The amount of lives to set
+ * @return The number of bytes written
+ */
 ssize_t setRemainingLives(int fd, unsigned char lives) {
     ssize_t bytesWritten;
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
