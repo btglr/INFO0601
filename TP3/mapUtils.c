@@ -18,6 +18,11 @@ unsigned char getTotalLives(int fd) {
     return totalLives;
 }
 
+/**
+ * Gets the map version from the file
+ * @param fd The file descriptor of the save file
+ * @return The map version
+ */
 int getMapVersion(int fd) {
     int mapVersion;
 
@@ -26,6 +31,10 @@ int getMapVersion(int fd) {
     return mapVersion;
 }
 
+/**
+ * Increases the map version of the file
+ * @param fd The file descriptor of the save file
+ */
 void increaseMapVersion(int fd) {
     int mapVersion = getMapVersion(fd);
 
@@ -33,6 +42,10 @@ void increaseMapVersion(int fd) {
     writeFileOff(fd, &mapVersion, 0, SEEK_SET, sizeof(int));
 }
 
+/**
+ * Decreases the total number of lives
+ * @param fd The file descriptor of the save file
+ */
 void decreaseTotalLives(int fd) {
     unsigned char lives = getTotalLives(fd);
 
@@ -42,6 +55,10 @@ void decreaseTotalLives(int fd) {
     }
 }
 
+/**
+ * Increases the total number of lives
+ * @param fd The file descriptor of the save file
+ */
 void increaseTotalLives(int fd) {
     unsigned char lives = getTotalLives(fd);
 
@@ -51,6 +68,12 @@ void increaseTotalLives(int fd) {
     }
 }
 
+/**
+ * Gets the amount of walls of a given type
+ * @param fd The file descriptor of the save file
+ * @param type The type of wall to count
+ * @return The amount of walls of the type
+ */
 int getWallCount(int fd, int type) {
     int i, wallCount = 0;
     int initialPadding = sizeof(int) + sizeof(unsigned char);
@@ -82,6 +105,13 @@ int getWallCount(int fd, int type) {
     return wallCount;
 }
 
+/**
+ * Gets the wall at the given position
+ * @param fd The file descriptor of the save file
+ * @param x The x position of the wall
+ * @param y The y position of the wall
+ * @return The wall type at the given position
+ */
 unsigned char getWallAt(int fd, int x, int y) {
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
     unsigned char wall = EMPTY_SQUARE;
@@ -94,10 +124,24 @@ unsigned char getWallAt(int fd, int x, int y) {
     return wall;
 }
 
+/**
+ * Makes a value v a multiple of m
+ * @param v The value
+ * @param m The multiple
+ * @return The new value
+ */
 int makeMultipleOf(int v, int m) {
     return v - (v % m);
 }
 
+/**
+ * Gets the next wall at a given position depending on whether it's the game or editor
+ * @param fd The file descriptor of the save file
+ * @param x The x position of the wall
+ * @param y The y position of the wall
+ * @param editor TRUE or FALSE
+ * @return The next wall at the given position
+ */
 unsigned char getNextWallAt(int fd, int x, int y, int editor) {
     unsigned char originalType, nextWall = UNCHANGED;
     /* Map version + number of lives */
@@ -125,6 +169,14 @@ unsigned char getNextWallAt(int fd, int x, int y, int editor) {
     return nextWall;
 }
 
+/**
+ * Sets the wall at the given position to the given type
+ * @param fd The file descriptor of the save file
+ * @param x The x position of the wall
+ * @param y The y position of the wall
+ * @param type The new type of the wall
+ * @return
+ */
 unsigned char setWallAt(int fd, int x, int y, unsigned char type) {
     /* Map version + number of lives */
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
