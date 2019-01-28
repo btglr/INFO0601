@@ -322,3 +322,25 @@ void setPlayerPosition(int fd, int x, int y) {
 
     writeFileOff(fd, buf, offset, SEEK_SET, 2 * sizeof(unsigned char));
 }
+
+unsigned char getRemainingLives(int fd) {
+    unsigned char remainingLives;
+    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
+    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
+
+    if (readFileOff(fd, &remainingLives, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
+        remainingLives = 0;
+    }
+
+    return remainingLives;
+}
+
+ssize_t setRemainingLives(int fd, unsigned char lives) {
+    ssize_t bytesWritten;
+    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
+    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char));
+
+    bytesWritten = writeFileOff(fd, &lives, offset, SEEK_SET, sizeof(unsigned char));
+
+    return bytesWritten;
+}
