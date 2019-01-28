@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
                     break;
 
                 case DISCOVERED_WALL:
-                    /* Player has hit an invisible that has become "discovered", draw it as such */
+                    /* Player has hit an invisible wall that has become "discovered", draw it as such */
                     drawSquare(gameWindow, DISCOVERED_WALL, posX, posY, TRUE);
 
                     updateLivesLeft(stateWindow, fd);
