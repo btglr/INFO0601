@@ -14,7 +14,7 @@
 /**
  * Loads the filename whether it be a save file or a map file
  * @param filename The file to load
- * @return A file descriptor to the file
+ * @return A file descriptor to the file save
  */
 int loadGame(char *filename) {
     int saveFd, mapFd, mapVersion;
@@ -83,7 +83,7 @@ int loadGame(char *filename) {
 
 /**
  * Moves the player to the given coordinates
- * @param fd The file descriptor of the save
+ * @param fd The file descriptor of the save file
  * @param newX The new X coordinate of the player
  * @param newY The new Y coordinate of the player
  * @return The new square where the player is now positioned, or UNCHANGED
@@ -128,6 +128,11 @@ unsigned char movePlayer(int fd, int newX, int newY) {
     return newSquare;
 }
 
+/**
+ * Removes one life from the player
+ * @param fd The file descriptor of the save file
+ * @return The number of lives remaining
+ */
 int loseLife(int fd) {
     unsigned char remainingLives = getRemainingLives(fd);
 
@@ -140,6 +145,10 @@ int loseLife(int fd) {
     return remainingLives;
 }
 
+/**
+ * Loads the initial state window for the game executable
+ * @param window The window to load it in
+ */
 void loadStateWindowGame(WINDOW *window) {
     wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
     mvwprintw(window, 5, 1, "  ");
@@ -162,6 +171,11 @@ void loadStateWindowGame(WINDOW *window) {
     wrefresh(window);
 }
 
+/**
+ * Gets the next wall type for the game executable
+ * @param type The current type of the wall
+ * @return The next type of the wall
+ */
 unsigned char getNextWallGame(unsigned char type) {
     unsigned char nextType;
 
@@ -183,6 +197,13 @@ unsigned char getNextWallGame(unsigned char type) {
     return nextType;
 }
 
+/**
+ * Changes the wall type for the game executable
+ * @param fd The file descriptor of the save file
+ * @param x The x position of the wall
+ * @param y The y position of the wall
+ * @return The new wall type
+ */
 unsigned char changeWallGame(int fd, int x, int y) {
     unsigned char originalType, nextType, res = UNCHANGED;
     /* Map version + number of lives */
@@ -206,8 +227,13 @@ unsigned char changeWallGame(int fd, int x, int y) {
     return res;
 }
 
+/**
+ * Changes all walls of a given type to the next type
+ * @param fd The file descriptor of the save file
+ * @param type The type of the walls we want to change to the next one
+ */
 void changeAllWalls(int fd, unsigned char type) {
-    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT];
+    unsigned char buffer[MAP_WIDTH * MAP_HEIGHT], nextType = getNextWallGame(type);
     /* Map version + number of lives */
     int initialPadding = sizeof(int) + sizeof(unsigned char), i;
     ssize_t bytesRead;
@@ -215,7 +241,7 @@ void changeAllWalls(int fd, unsigned char type) {
     if ((bytesRead = readFileOff(fd, buffer, initialPadding, SEEK_SET, MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char))) > 0) {
         for (i = 0; i < bytesRead; ++i) {
             if (buffer[i] == type) {
-                buffer[i] = getNextWallGame(type);
+                buffer[i] = nextType;
             }
         }
 
