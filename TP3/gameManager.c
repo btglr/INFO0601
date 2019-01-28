@@ -221,7 +221,7 @@ void updateMoves(WINDOW *window, int fd) {
 }
 
 void updateLivesLeft(WINDOW *window, int fd) {
-    updateStateWindow(window, 1, 2, "Lives: %d", getRemainingLives(fd));
+    updateStateWindow(window, 1, 2, "Lives: %d/%d", getRemainingLives(fd), getTotalLives(fd));
 }
 
 void discoverAllWalls(WINDOW *window, int fd) {
