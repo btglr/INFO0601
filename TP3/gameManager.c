@@ -250,23 +250,49 @@ void changeAllWalls(int fd, unsigned char type) {
 
 }
 
+/**
+ * Updates the state window with the current amount of discovered walls
+ * @param window The window to update
+ * @param fd The file descriptor of the save file
+ */
 void updateDiscoveredWalls(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 3, "Walls: %d/%d", getWallCount(fd, DISCOVERED_WALL), getWallCount(fd, INVISIBLE_WALL) + getWallCount(fd, DISCOVERED_WALL));
 }
 
+/**
+ * Updates the state window with the current amount of moves
+ * @param window The window to update
+ * @param fd The file descriptor of the save file
+ */
 void updateMoves(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 1, "Moves: %d", getVisitedSquares(fd));
 }
 
+/**
+ * Updates the state window with the current and total amount of lives
+ * @param window The window to update
+ * @param fd The file descriptor of the save file
+ */
 void updateLivesLeft(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 2, "Lives: %d/%d", getRemainingLives(fd), getTotalLives(fd));
 }
 
+/**
+ * Discovers all invisible walls (at the end of the game...)
+ * @param window The game window to update
+ * @param fd The file descriptor of the save file
+ */
 void discoverAllWalls(WINDOW *window, int fd) {
     changeAllWalls(fd, INVISIBLE_WALL);
     drawMap(window, fd);
 }
 
+/**
+ * Gets the player position
+ * @param fd The file descriptor of the save file
+ * @param x The variable that will contain the x position
+ * @param y The variable that will contain the y position
+ */
 void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
     offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
@@ -280,6 +306,12 @@ void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
     }
 }
 
+/**
+ * Sets the player position
+ * @param fd The file descriptor of the save file
+ * @param x The new x position
+ * @param y The new y position
+ */
 void setPlayerPosition(int fd, int x, int y) {
     unsigned char buf[2];
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
