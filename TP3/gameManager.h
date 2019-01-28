@@ -15,5 +15,7 @@ void updateDiscoveredWalls(WINDOW *window, int fd);
 void updateMoves(WINDOW *window, int fd);
 void updateLivesLeft(WINDOW *window, int fd);
 void discoverAllWalls(WINDOW *window, int fd);
+void getPlayerPosition(int fd, unsigned char *x, unsigned char *y);
+void setPlayerPosition(int fd, int x, int y);
 
 #endif

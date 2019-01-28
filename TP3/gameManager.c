@@ -229,26 +229,26 @@ void discoverAllWalls(WINDOW *window, int fd) {
     drawMap(window, fd);
 }
 
-/*unsigned char getPlayerXPosition(int fd) {
-    unsigned char xPos;
+void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
     offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
 
-    if (readFileOff(fd, &xPos, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
-        xPos = 0;
+    if (readFileOff(fd, x, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
+        *x = X_POS_BEGINNING;
     }
 
-    return xPos;
+    if (readFile(fd, y, sizeof(unsigned char)) == 0) {
+        *y = Y_POS_BEGINNING;
+    }
 }
 
-unsigned char getPlayerYPosition(int fd) {
-    unsigned char yPos;
+void setPlayerPosition(int fd, int x, int y) {
+    unsigned char buf[2];
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
-    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char) + sizeof(unsigned char);
+    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
 
-    if (readFileOff(fd, &yPos, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
-        yPos = 0;
-    }
+    buf[0] = (unsigned char) x;
+    buf[1] = (unsigned char) y;
 
-    return yPos;
-}*/
+    writeFileOff(fd, buf, offset, SEEK_SET, 2 * sizeof(unsigned char));
+}

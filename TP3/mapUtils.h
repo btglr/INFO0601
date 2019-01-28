@@ -4,8 +4,6 @@
 unsigned char getTotalLives(int fd);
 unsigned char getRemainingLives(int fd);
 int getMapVersion(int fd);
-void getPlayerPosition(int fd, unsigned char *x, unsigned char *y);
-void setPlayerPosition(int fd, int x, int y);
 ssize_t setRemainingLives(int fd, unsigned char lives);
 int getVisitedSquares(int fd);
 

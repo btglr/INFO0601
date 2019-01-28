@@ -112,30 +112,6 @@ int getWallCount(int fd, int type) {
     return wallCount;
 }
 
-void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
-    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
-    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
-
-    if (readFileOff(fd, x, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
-        *x = X_POS_BEGINNING;
-    }
-
-    if (readFile(fd, y, sizeof(unsigned char)) == 0) {
-        *y = Y_POS_BEGINNING;
-    }
-}
-
-void setPlayerPosition(int fd, int x, int y) {
-    unsigned char buf[2];
-    int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
-    offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
-
-    buf[0] = (unsigned char) x;
-    buf[1] = (unsigned char) y;
-
-    writeFileOff(fd, buf, offset, SEEK_SET, 2 * sizeof(unsigned char));
-}
-
 unsigned char getWallAt(int fd, int x, int y) {
     int initialPadding = sizeof(int) + sizeof(unsigned char), offset;
     unsigned char wall = EMPTY_SQUARE;
