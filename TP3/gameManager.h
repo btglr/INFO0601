@@ -1,3 +1,10 @@
+/**
+ * @file gameManager.h
+ * @author Bastien T.
+ * @date 21 January 2018
+ * @brief Functions pertaining to the game manager
+ */
+
 #ifndef TP3_GAMEMANAGER_H
 #define TP3_GAMEMANAGER_H
 
@@ -5,14 +12,14 @@
 #include <sys/types.h>
 
 /**
- * Loads the filename whether it be a save file or a map file
+ * Loads the @p filename whether it be a save file or a map file
  * @param filename The file to load
  * @return A file descriptor to the file save
  */
 int loadGame(char *filename);
 
 /**
- * Moves the player to the given coordinates
+ * Moves the player to the given @p newX and @p newY coordinates
  * @param fd The file descriptor of the save file
  * @param newX The new X coordinate of the player
  * @param newY The new Y coordinate of the player
