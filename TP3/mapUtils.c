@@ -131,7 +131,7 @@ unsigned char setWallAt(int fd, int x, int y, unsigned char type) {
         offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
 
         /* If the coordinates aren't corresponding to the entry or exit we write the new wall to the corresponding position */
-        if ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END)) {
+        if ((x != X_COORDINATE_ENTRANCE || y != Y_COORDINATE_ENTRANCE) && (x != X_COORDINATE_EXIT || y != Y_COORDINATE_EXIT)) {
             bytesWritten = writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
             if (bytesWritten > 0) {
                 res = type;

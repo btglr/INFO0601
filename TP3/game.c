@@ -113,7 +113,7 @@ int main(int argc, char *argv[]) {
     if (remainingLives == 0) {
         printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_LOST);
     }
-    else if (posX == X_POS_END && posY == Y_POS_END) {
+    else if (posX == X_COORDINATE_EXIT && posY == Y_COORDINATE_EXIT) {
         printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_WON);
     }
 
@@ -128,7 +128,7 @@ int main(int argc, char *argv[]) {
         origPosX = posX;
         origPosY = posY;
 
-        if (remainingLives != 0 && (posX / SQUARE_WIDTH != X_POS_END || posY != Y_POS_END)) {
+        if (remainingLives != 0 && (posX / SQUARE_WIDTH != X_COORDINATE_EXIT || posY != Y_COORDINATE_EXIT)) {
             /* Draw the visited square */
             drawSquare(gameWindow, VISITED_SQUARE, posX, posY, FALSE);
 
@@ -155,7 +155,7 @@ int main(int argc, char *argv[]) {
 
             switch (newSquare) {
                 case VISITED_SQUARE:
-                    if (posX / SQUARE_WIDTH == X_POS_END && posY == Y_POS_END) {
+                    if (posX / SQUARE_WIDTH == X_COORDINATE_EXIT && posY == Y_COORDINATE_EXIT) {
                         discoverAllWalls(gameWindow, fd);
                         printInMiddle(gameWindow, MAP_WIDTH, MAP_HEIGHT, GAME_OVER_WON);
                     }

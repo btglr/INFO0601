@@ -190,13 +190,13 @@ int main(int argc, char *argv[]) {
                 if(cpt != 0)
                     wprintw(informationWindow, "\n");
 
-                if (mouseX >= PLUS_SIGN_POS_X && mouseX <= PLUS_SIGN_POS_X + 2 && mouseY == PLUS_SIGN_POS_Y) {
+                if (mouseX >= X_COORDINATE_PLUS_SIGN && mouseX <= X_COORDINATE_PLUS_SIGN + 2 && mouseY == Y_COORDINATE_PLUS_SIGN) {
                     wprintw(informationWindow, "Added a life");
                     increaseTotalLives(fd);
                     edited = TRUE;
                 }
 
-                else if (mouseX >= MINUS_SIGN_POS_X && mouseX <= MINUS_SIGN_POS_X + 2 && mouseY == MINUS_SIGN_POS_Y) {
+                else if (mouseX >= X_COORDINATE_MINUS_SIGN && mouseX <= X_COORDINATE_MINUS_SIGN + 2 && mouseY == Y_COORDINATE_MINUS_SIGN) {
                     wprintw(informationWindow, "Removed a life");
                     decreaseTotalLives(fd);
                     edited = TRUE;

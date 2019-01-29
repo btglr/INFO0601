@@ -27,7 +27,7 @@ void initializeMap(int fd) {
     }
 
     /* Set the entrance to a visited square so it is clearly identified */
-    buffer[Y_POS_BEGINNING * MAP_WIDTH + X_POS_BEGINNING] = VISITED_SQUARE;
+    buffer[Y_COORDINATE_ENTRANCE * MAP_WIDTH + X_COORDINATE_ENTRANCE] = VISITED_SQUARE;
 
     mapVersion = DEFAULT_MAP_VERSION;
     lives = DEFAULT_LIVES;
@@ -84,15 +84,15 @@ void loadStateWindowEditor(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 2, "Walls: %d", getWallCount(fd, -1));
 
     wattron(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
-    mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X, ACS_HLINE | WA_BOLD);
-    mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X + 1, ACS_PLUS | WA_BOLD);
-    mvwaddch(window, PLUS_SIGN_POS_Y, PLUS_SIGN_POS_X + 2, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, Y_COORDINATE_PLUS_SIGN, X_COORDINATE_PLUS_SIGN, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, Y_COORDINATE_PLUS_SIGN, X_COORDINATE_PLUS_SIGN + 1, ACS_PLUS | WA_BOLD);
+    mvwaddch(window, Y_COORDINATE_PLUS_SIGN, X_COORDINATE_PLUS_SIGN + 2, ACS_HLINE | WA_BOLD);
     wattroff(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
 
     wattron(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
-    mvwaddch(window, MINUS_SIGN_POS_Y, MINUS_SIGN_POS_X, ACS_HLINE | WA_BOLD);
-    mvwaddch(window, MINUS_SIGN_POS_Y, MINUS_SIGN_POS_X + 1, ACS_HLINE | WA_BOLD);
-    mvwaddch(window, MINUS_SIGN_POS_Y, MINUS_SIGN_POS_X + 2, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, Y_COORDINATE_MINUS_SIGN, X_COORDINATE_MINUS_SIGN, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, Y_COORDINATE_MINUS_SIGN, X_COORDINATE_MINUS_SIGN + 1, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, Y_COORDINATE_MINUS_SIGN, X_COORDINATE_MINUS_SIGN + 2, ACS_HLINE | WA_BOLD);
     wattroff(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
 
     wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
@@ -147,7 +147,7 @@ unsigned char getNextWallEditor(unsigned char type) {
         case VISIBLE_WALL:
         case DISCOVERED_WALL:
             *//* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position *//*
-            if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END))) {
+            if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_COORDINATE_ENTRANCE || y != Y_COORDINATE_ENTRANCE) && (x != X_COORDINATE_EXIT || y != Y_COORDINATE_EXIT))) {
                 offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
                 bytesWritten = writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
             }

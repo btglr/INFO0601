@@ -64,8 +64,8 @@ int loadGame(char *filename) {
 
             /* Write the remaining lives as well as the starting position of the player */
             buf[0] = remainingLives;
-            buf[1] = X_POS_BEGINNING;
-            buf[2] = Y_POS_BEGINNING;
+            buf[1] = X_COORDINATE_ENTRANCE;
+            buf[2] = Y_COORDINATE_ENTRANCE;
 
             writeFileOff(saveFd, buf, 0, SEEK_END, sizeof(unsigned char) * 3);
         }
@@ -185,7 +185,7 @@ unsigned char changeWallGame(int fd, int x, int y) {
         nextType = getNextWallGame(originalType);
 
         /* If the coordinates aren't corresponding to the entry or exit we write the type to the corresponding position */
-        if ((x != X_POS_BEGINNING || y != Y_POS_BEGINNING) && (x != X_POS_END || y != Y_POS_END)) {
+        if ((x != X_COORDINATE_ENTRANCE || y != Y_COORDINATE_ENTRANCE) && (x != X_COORDINATE_EXIT || y != Y_COORDINATE_EXIT)) {
             writeFileOff(fd, &nextType, offset, SEEK_SET, sizeof(unsigned char));
             res = nextType;
         }
@@ -235,11 +235,11 @@ void getPlayerPosition(int fd, unsigned char *x, unsigned char *y) {
     offset = initialPadding + (MAP_WIDTH * MAP_HEIGHT * sizeof(unsigned char)) + sizeof(unsigned char);
 
     if (readFileOff(fd, x, offset, SEEK_SET, sizeof(unsigned char)) == 0) {
-        *x = X_POS_BEGINNING;
+        *x = X_COORDINATE_ENTRANCE;
     }
 
     if (readFile(fd, y, sizeof(unsigned char)) == 0) {
-        *y = Y_POS_BEGINNING;
+        *y = Y_COORDINATE_ENTRANCE;
     }
 }
 

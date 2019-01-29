@@ -78,7 +78,7 @@ void drawMap(WINDOW *window, int fd) {
         drawSquare(window, buffer[i], x, y, false);
     }
 
-    mvwaddch(window, Y_POS_END, X_POS_END * SQUARE_WIDTH, 'E');
+    mvwaddch(window, Y_COORDINATE_EXIT, X_COORDINATE_EXIT * SQUARE_WIDTH, 'E');
 
     wrefresh(window);
 }
