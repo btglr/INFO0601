@@ -30,7 +30,7 @@ WINDOW* initializeWindow(int width, int height, int x, int y);
 WINDOW* initializeSubWindow(WINDOW *window, int width, int height, int x, int y);
 
 /**
- * Draws a square into the given @p window
+ * Draws a square into the given window
  * @param window The window to draw into
  * @param type The type of square to draw
  * @param x The x coordinate of the square
