@@ -1,3 +1,10 @@
+/**
+ * @file fileUtils.h
+ * @author Bastien T.
+ * @date 21 January 2018
+ * @brief Utility functions for files
+ */
+
 #ifndef TP3_UTILS_H
 #define TP3_UTILS_H
 
