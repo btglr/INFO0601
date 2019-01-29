@@ -13,10 +13,6 @@
 #include "mapUtils.h"
 #include "windowDrawer.h"
 
-/**
- * Initializes a new map with a default number of lives, a map version and all the squares as 0
- * @param fd A file descriptor to the new map
- */
 void initializeMap(int fd) {
     int i, mapVersion;
     unsigned char lives;
@@ -36,11 +32,6 @@ void initializeMap(int fd) {
     writeFile(fd, buffer, sizeof(unsigned char) * MAP_WIDTH * MAP_HEIGHT);
 }
 
-/**
- * Either loads or creates a new map from given filename
- * @param mapName The map's name
- * @return A file descriptor to the map
- */
 int loadMapEditor(char *mapName) {
     int fd;
 
@@ -134,29 +125,3 @@ unsigned char getNextWallEditor(unsigned char type) {
 
     return nextType;
 }
-
-/*int setWall(int fd, unsigned char type, int x, int y) {
-    *//* Map version + number of lives *//*
-    int initialPadding = sizeof(int) + sizeof(unsigned char);
-    int offset;
-    ssize_t bytesWritten = -1;
-
-    switch(type) {
-        case EMPTY_SQUARE:
-        case INVISIBLE_WALL:
-        case VISIBLE_WALL:
-        case DISCOVERED_WALL:
-            *//* If the coordinates aren't corresponding to the entry or exit and are within the map's width and height, we write the type to the corresponding position *//*
-            if ((x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) && ((x != X_COORDINATE_ENTRANCE || y != Y_COORDINATE_ENTRANCE) && (x != X_COORDINATE_EXIT || y != Y_COORDINATE_EXIT))) {
-                offset = initialPadding + (y * MAP_WIDTH * sizeof(unsigned char) + x * sizeof(unsigned char));
-                bytesWritten = writeFileOff(fd, &type, offset, SEEK_SET, sizeof(unsigned char));
-            }
-
-            break;
-
-        default:
-            printf("Unsupported wall type");
-    }
-
-    return (int) bytesWritten;
-}*/
