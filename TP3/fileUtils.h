@@ -11,6 +11,14 @@
 #include <sys/types.h>
 
 /**
+ * Returns a concatenation of the folder and the filename
+ * @param folder The folder where resides the file
+ * @param filename The file's name
+ * @return A new char of the format folder/filename
+ */
+char* getPath(char* folder, char *filename);
+
+/**
  * Makes a copy of the file at @p src to @p dest
  * @param src The filename of the source
  * @param dest The filename of the destination
@@ -25,7 +33,7 @@ ssize_t copyFile(char *src, char *dest);
  * @param ... If used with O_CREAT, the mode to set the file with
  * @return The file descriptor pointing to the file
  */
-int openFile(char *filename, int flags, ...);
+int openFile(char *folder, char *filename, int flags, ...);
 
 /**
  * Seeks at the @p offset starting either from the beginning, current position or end
