@@ -190,5 +190,13 @@
  * The message displayed when winning
  */
 #define GAME_OVER_WON "Game Over. You won!"
+/**
+ * The folder where maps are saved and opened from
+ */
+#define MAPS_FOLDER "maps"
+/**
+ * The folder where saves are saved and opened from
+ */
+#define SAVES_FOLDER "saves"
 
 #endif
