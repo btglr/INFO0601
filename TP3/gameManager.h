@@ -85,7 +85,7 @@ void updateMoves(WINDOW *window, int fd);
 void updateLivesLeft(WINDOW *window, int fd);
 
 /**
- * Discovers all invisible walls (at the end of the game...)
+ * Discovers all invisible walls (when you win...)
  * @param window The game window to update
  * @param fd The file descriptor of the save file
  */
