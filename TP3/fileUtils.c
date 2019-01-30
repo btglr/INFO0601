@@ -9,13 +9,13 @@
 #include <string.h>
 #include <stdarg.h>
 
-ssize_t copyFile(char *src, char *dest) {
+ssize_t copyFile(char *srcFolder, char *src, char *destFolder, char *dest) {
     int fdOrig, fdDest;
     char buf[1024];
     ssize_t bytesRead, bytesWritten = 0;
 
-    fdOrig = openFile(src, O_RDONLY);
-    fdDest = openFile(dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    fdOrig = openFile(srcFolder, src, O_RDONLY);
+    fdDest = openFile(destFolder, dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
     while ((bytesRead = readFile(fdOrig, buf, sizeof(buf))) > 0) {
         bytesWritten += writeFile(fdDest, buf, bytesRead);

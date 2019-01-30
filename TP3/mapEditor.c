@@ -34,12 +34,13 @@ void initializeMap(int fd) {
 
 int loadMapEditor(char *mapName) {
     int fd;
+    char* path = getPath(MAPS_FOLDER, mapName);
 
-    fd = open(mapName, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
+    fd = open(path, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR);
 
     if (fd == -1) {
         if(errno == EEXIST) {
-            fd = openFile(mapName, O_RDWR);
+            fd = openFile(MAPS_FOLDER, mapName, O_RDWR);
         }
 
         else {
@@ -53,6 +54,8 @@ int loadMapEditor(char *mapName) {
         /* Create empty map */
         initializeMap(fd);
     }
+
+    free(path);
 
     return fd;
 }

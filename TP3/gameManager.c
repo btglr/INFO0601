@@ -16,18 +16,18 @@ int loadGame(char *filename) {
     unsigned char remainingLives;
     unsigned char buf[3];
     char saveFilename[MAX_FILENAME_LENGTH];
-    char *originalMapFilename, *mapName;
+    char *originalMapFilename, *mapName, *path;
 
     if (strstr(filename, "_game.bin")) {
         /* User specified a save file, load it if it exists */
-        saveFd = openFile(filename, O_RDWR, S_IRUSR | S_IWUSR);
+        saveFd = openFile(SAVES_FOLDER, filename, O_RDWR, S_IRUSR | S_IWUSR);
     }
 
     else {
         /* User specified a map name, we create a new save file */
 
         /* We attempt to open the map file */
-        mapFd = openFile(filename, O_RDONLY, S_IRUSR);
+        mapFd = openFile(MAPS_FOLDER, filename, O_RDONLY, S_IRUSR);
 
         originalMapFilename = (char*) malloc((strlen(filename) + 1) * sizeof(char));
 
@@ -48,19 +48,21 @@ int loadGame(char *filename) {
 
         sprintf(saveFilename, "%s_%d_game.bin", mapName, mapVersion);
 
+        path = getPath(SAVES_FOLDER, saveFilename);
+
         /* Check if save file already exists */
-        if ((saveFd = open(saveFilename, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) == -1) {
+        if ((saveFd = open(path, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR)) == -1) {
             if (errno != EEXIST) {
                 stop_ncurses();
                 perror("An error occurred while trying to open the file");
                 exit(EXIT_FAILURE);
             }
 
-            saveFd = openFile(saveFilename, O_RDWR, S_IRUSR | S_IWUSR);
+            saveFd = openFile(SAVES_FOLDER, saveFilename, O_RDWR, S_IRUSR | S_IWUSR);
         }
 
         else {
-            copyFile(originalMapFilename, saveFilename);
+            copyFile(MAPS_FOLDER, originalMapFilename, SAVES_FOLDER, saveFilename);
 
             /* Write the remaining lives as well as the starting position of the player */
             buf[0] = remainingLives;
@@ -70,6 +72,7 @@ int loadGame(char *filename) {
             writeFileOff(saveFd, buf, 0, SEEK_END, sizeof(unsigned char) * 3);
         }
 
+        free(path);
         free(originalMapFilename);
     }
 

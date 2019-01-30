@@ -20,11 +20,13 @@ char* getPath(char* folder, char *filename);
 
 /**
  * Makes a copy of the file at @p src to @p dest
+ * @param srcFolder The source file's folder
  * @param src The filename of the source
+ * @param destFolder The destination file's folder
  * @param dest The filename of the destination
  * @return The number of bytes written
  */
-ssize_t copyFile(char *src, char *dest);
+ssize_t copyFile(char *srcFolder, char *src, char *destFolder, char *dest);
 
 /**
  * Opens the file pointed by @p filename with the given @p flags
