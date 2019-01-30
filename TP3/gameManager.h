@@ -112,7 +112,7 @@ void setPlayerPosition(int fd, int x, int y);
  * @param fd The file descriptor of the save file
  * @return The amount of remaining lives
  */
-unsigned char getTotalLives(int fd);
+unsigned char getRemainingLives(int fd);
 
 /**
  * Sets the amount of remaining lives
@@ -120,6 +120,6 @@ unsigned char getTotalLives(int fd);
  * @param lives The amount of lives to set
  * @return The number of bytes written
  */
-unsigned char getRemainingLives(int fd);
+ssize_t setRemainingLives(int fd, unsigned char lives);
 
 #endif
