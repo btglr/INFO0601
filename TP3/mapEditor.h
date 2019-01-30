@@ -60,4 +60,20 @@ void updateLivesCount(WINDOW *window, int fd);
  */
 unsigned char getNextWallEditor(unsigned char type);
 
+/**
+ * Draws the plus sign for the map editor
+ * @param window The window to draw into
+ * @param x The X coordinate to draw the sign at
+ * @param y The Y coordinate to draw the sign at
+ */
+void drawPlusSign(WINDOW *window, int x, int y);
+
+/**
+ * Draws the minus sign for the map editor
+ * @param window The window to draw into
+ * @param x The X coordinate to draw the sign at
+ * @param y The Y coordinate to draw the sign at
+ */
+void drawMinusSign(WINDOW *window, int x, int y);
+
 #endif

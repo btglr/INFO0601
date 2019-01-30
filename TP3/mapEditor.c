@@ -68,23 +68,16 @@ void updateWallCount(WINDOW *window, int fd) {
 
 void updateLivesCount(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 1, "Lives: %d", getTotalLives(fd));
+    drawPlusSign(window, X_COORDINATE_PLUS_SIGN, Y_COORDINATE_PLUS_SIGN);
+    drawMinusSign(window, X_COORDINATE_MINUS_SIGN, Y_COORDINATE_MINUS_SIGN);
 }
 
 void loadStateWindowEditor(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 1, "Lives: %d", getTotalLives(fd));
     updateStateWindow(window, 1, 2, "Walls: %d", getWallCount(fd, -1));
 
-    wattron(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
-    mvwaddch(window, Y_COORDINATE_PLUS_SIGN, X_COORDINATE_PLUS_SIGN, ACS_HLINE | WA_BOLD);
-    mvwaddch(window, Y_COORDINATE_PLUS_SIGN, X_COORDINATE_PLUS_SIGN + 1, ACS_PLUS | WA_BOLD);
-    mvwaddch(window, Y_COORDINATE_PLUS_SIGN, X_COORDINATE_PLUS_SIGN + 2, ACS_HLINE | WA_BOLD);
-    wattroff(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
-
-    wattron(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
-    mvwaddch(window, Y_COORDINATE_MINUS_SIGN, X_COORDINATE_MINUS_SIGN, ACS_HLINE | WA_BOLD);
-    mvwaddch(window, Y_COORDINATE_MINUS_SIGN, X_COORDINATE_MINUS_SIGN + 1, ACS_HLINE | WA_BOLD);
-    mvwaddch(window, Y_COORDINATE_MINUS_SIGN, X_COORDINATE_MINUS_SIGN + 2, ACS_HLINE | WA_BOLD);
-    wattroff(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
+    drawPlusSign(window, X_COORDINATE_PLUS_SIGN, Y_COORDINATE_PLUS_SIGN);
+    drawMinusSign(window, X_COORDINATE_MINUS_SIGN, Y_COORDINATE_MINUS_SIGN);
 
     wattron(window, COLOR_PAIR(PAIR_COLOR_VISIBLE_WALL));
     mvwprintw(window, 4, 1, "  ");
@@ -124,4 +117,21 @@ unsigned char getNextWallEditor(unsigned char type) {
     }
 
     return nextType;
+}
+
+void drawPlusSign(WINDOW *window, int x, int y) {
+    wattron(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
+    mvwaddch(window, y, x, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, y, x + 1, ACS_PLUS | WA_BOLD);
+    mvwaddch(window, y, x + 2, ACS_HLINE | WA_BOLD);
+    wattroff(window, COLOR_PAIR(PAIR_COLOR_PLUS_SIGN));
+    wrefresh(window);
+}
+
+void drawMinusSign(WINDOW *window, int x, int y) {
+    wattron(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
+    mvwaddch(window, y, x, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, y, x + 1, ACS_HLINE | WA_BOLD);
+    mvwaddch(window, y, x + 2, ACS_HLINE | WA_BOLD);
+    wattroff(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
 }
