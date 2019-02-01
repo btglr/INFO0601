@@ -140,5 +140,4 @@ void clearLine(WINDOW *window, int x, int y) {
     move(previousY, 0);
     wclrtoeol(window);
     move(previousY, previousX);
-
 }

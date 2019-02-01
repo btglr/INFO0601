@@ -71,6 +71,7 @@ void updateWallCount(WINDOW *window, int fd) {
 
 void updateLivesCount(WINDOW *window, int fd) {
     updateStateWindow(window, 1, 1, "Lives: %d", getTotalLives(fd));
+    clearLine(window, X_COORDINATE_PLUS_SIGN, Y_COORDINATE_PLUS_SIGN);
     drawPlusSign(window, X_COORDINATE_PLUS_SIGN, Y_COORDINATE_PLUS_SIGN);
     drawMinusSign(window, X_COORDINATE_MINUS_SIGN, Y_COORDINATE_MINUS_SIGN);
 }
@@ -137,4 +138,5 @@ void drawMinusSign(WINDOW *window, int x, int y) {
     mvwaddch(window, y, x + 1, ACS_HLINE | WA_BOLD);
     mvwaddch(window, y, x + 2, ACS_HLINE | WA_BOLD);
     wattroff(window, COLOR_PAIR(PAIR_COLOR_MINUS_SIGN));
+    wrefresh(window);
 }
