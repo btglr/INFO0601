@@ -43,6 +43,8 @@ int main(int argc, char *argv[]) {
 
     init_pair(PAIR_COLOR_PLAYER, COLOR_WHITE, COLOR_PLAYER);
     init_pair(PAIR_COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL, COLOR_VISIBLE_WALL);
+
+    /* To make invisible walls visible */
     /*init_pair(PAIR_COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL, COLOR_INVISIBLE_WALL);*/
 
     /* To make invisible walls actually invisible */
