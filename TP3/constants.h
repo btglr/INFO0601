@@ -185,11 +185,11 @@
 /**
  * The message displayed when losing
  */
-#define GAME_OVER_LOST "Game Over. You lost!"
+#define GAME_OVER_LOST "Game Over. You lose!"
 /**
  * The message displayed when winning
  */
-#define GAME_OVER_WON "Game Over. You won!"
+#define GAME_OVER_WON "Game Over. You win!"
 /**
  * The folder where maps are saved and opened from
  */
