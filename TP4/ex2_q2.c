@@ -7,21 +7,32 @@
 #define PIPE_READ 0
 #define PIPE_WRITE 1
 
-int child(int id, int *f_c) {
+int child(int id, int *f_c, int *c_f) {
     char message[512];
 
     if (close(f_c[PIPE_WRITE]) == -1) {
-        perror("Child: failed to close the pipe in writing mode");
+        perror("Child: failed to close the father to child pipe in writing mode");
+        exit(EXIT_FAILURE);
+    }
+
+    if (close(c_f[PIPE_READ]) == -1) {
+        perror("Child: failed to close the child to father pipe in reading mode");
         exit(EXIT_FAILURE);
     }
 
     do {
         if (read(f_c[PIPE_READ], message, 512) == -1) {
-            perror("Child: failed to read data from the pipe");
+            perror("Child: failed to read data from the father to child pipe");
             exit(EXIT_FAILURE);
         }
 
         printf("Child %d received message: %s\n", id, message);
+
+        sprintf(message, "%d received message", id);
+        if (write(c_f[PIPE_WRITE], message, 512) == -1) {
+            perror("Child: failed to write data in the child to father pipe");
+            exit(EXIT_FAILURE);
+        }
     } while (strcmp(message, "STOP") != 0);
 
     free(f_c);
@@ -31,7 +42,7 @@ int child(int id, int *f_c) {
 
 int main(int argc, char *argv[]) {
     int nbChildren, i, j, idChild, c;
-    int **pipes;
+    int **f_c, **c_f;
     pid_t *pidArr;
     char buffer[512];
 
@@ -53,23 +64,40 @@ int main(int argc, char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    pipes = (int**) malloc(nbChildren * sizeof(int*));
+    f_c = (int**) malloc(nbChildren * sizeof(int*));
+    c_f = (int**) malloc(nbChildren * sizeof(int*));
 
-    if (pipes == NULL) {
+    if (f_c == NULL) {
+        perror("An error occurred while allocating memory");
+        exit(EXIT_FAILURE);
+    }
+
+    if (c_f == NULL) {
         perror("An error occurred while allocating memory");
         exit(EXIT_FAILURE);
     }
 
     for (i = 0; i < nbChildren; ++i) {
-        pipes[i] = (int*) malloc(2 * sizeof(int));
+        f_c[i] = (int*) malloc(2 * sizeof(int));
+        c_f[i] = (int*) malloc(2 * sizeof(int));
 
-        if (pipes[i] == NULL) {
+        if (f_c[i] == NULL) {
             perror("An error occurred while allocating memory");
             exit(EXIT_FAILURE);
         }
 
-        if (pipe(pipes[i]) == -1) {
-            perror("An error occurred while creating a pipe");
+        if (pipe(f_c[i]) == -1) {
+            perror("An error occurred while creating a father to child pipe");
+            exit(EXIT_FAILURE);
+        }
+
+        if (c_f[i] == NULL) {
+            perror("An error occurred while allocating memory");
+            exit(EXIT_FAILURE);
+        }
+
+        if (pipe(c_f[i]) == -1) {
+            perror("An error occurred while creating a child to father pipe");
             exit(EXIT_FAILURE);
         }
     }
@@ -86,23 +114,33 @@ int main(int argc, char *argv[]) {
         if (pidArr[i] == 0) {
             for (j = 0; j < nbChildren; ++j) {
                 if (i != j) {
-                    if (close(pipes[j][PIPE_WRITE]) == -1) {
-                        perror("Child: failed to close the pipe in writing mode");
+                    if (close(f_c[j][PIPE_WRITE]) == -1) {
+                        perror("Father to child: failed to close the pipe in writing mode");
                         exit(EXIT_FAILURE);
                     }
 
-                    if (close(pipes[j][PIPE_READ]) == -1) {
-                        perror("Child: failed to close the pipe in reading mode");
-                        printf("i: %d, j: %d\n", i, j);
+                    if (close(f_c[j][PIPE_READ]) == -1) {
+                        perror("Father to child: failed to close the pipe in reading mode");
                         exit(EXIT_FAILURE);
                     }
 
-                    free(pipes[j]);
+                    if (close(c_f[j][PIPE_WRITE]) == -1) {
+                        perror("Child to father: failed to close the pipe in writing mode");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    if (close(c_f[j][PIPE_READ]) == -1) {
+                        perror("Child to father: failed to close the pipe in reading mode");
+                        exit(EXIT_FAILURE);
+                    }
+
+                    free(f_c[j]);
+                    free(c_f[j]);
                 }
             }
 
             free(pidArr);
-            child(i, pipes[i]);
+            child(i, f_c[i], c_f[i]);
         }
     }
 
@@ -116,7 +154,7 @@ int main(int argc, char *argv[]) {
 
         if (idChild == -1 || idChild >= nbChildren || idChild < 0) {
             for (i = 0; i < nbChildren; ++i) {
-                if (write(pipes[i][PIPE_WRITE], "STOP", 512) == -1) {
+                if (write(f_c[i][PIPE_WRITE], "STOP", 512) == -1) {
                     perror("Child: failed to write data in the pipe");
                     exit(EXIT_FAILURE);
                 }
@@ -132,20 +170,39 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
             }
 
-            if (strlen(buffer) > 0 && write(pipes[idChild][PIPE_WRITE], buffer, 512) == -1) {
+            if (strlen(buffer) > 0 && write(f_c[idChild][PIPE_WRITE], buffer, 512) == -1) {
                 perror("Child: failed to write data in the pipe");
                 exit(EXIT_FAILURE);
             }
+
+            if (read(c_f[idChild][PIPE_READ], buffer, 512) == -1) {
+                perror("Child: failed to read data from the pipe");
+                exit(EXIT_FAILURE);
+            }
+
+            printf("Received response from child: %s\n", buffer);
 
             sleep(1);
         }
     } while (idChild > -1 && idChild < nbChildren);
 
     for (i = 0; i < nbChildren; ++i) {
-        free(pipes[i]);
+        if (close(f_c[i][PIPE_WRITE]) == -1) {
+            perror("Failed to close the father to child pipe in writing mode");
+            exit(EXIT_FAILURE);
+        }
+
+        if (close(c_f[i][PIPE_READ]) == -1) {
+            perror("Failed to close the child to father pipe in reading mode");
+            exit(EXIT_FAILURE);
+        }
+
+        free(f_c[i]);
+        free(c_f[i]);
     }
 
-    free(pipes);
+    free(f_c);
+    free(c_f);
     free(pidArr);
 
     return EXIT_SUCCESS;
