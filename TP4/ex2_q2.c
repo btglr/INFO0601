@@ -30,37 +30,37 @@ int child(int id, int *f_c) {
 }
 
 int main(int argc, char *argv[]) {
-    int nbChild, i, j, idChild, c;
+    int nbChildren, i, j, idChild, c;
     int **pipes;
     pid_t *pidArr;
     char buffer[512];
 
     if (argc == 2) {
-        nbChild = atoi(argv[1]);
+        nbChildren = atoi(argv[1]);
     }
 
     else {
         printf("Enter number of children to spawn: ");
 
-        if (scanf("%d", &nbChild) != 1) {
+        if (scanf("%d", &nbChildren) != 1) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
     }
 
-    if (nbChild < 1) {
+    if (nbChildren < 1) {
         fprintf(stderr, "Number of children to spawn can't be less than 1\n");
         exit(EXIT_FAILURE);
     }
 
-    pipes = (int**) malloc(nbChild * sizeof(int*));
+    pipes = (int**) malloc(nbChildren * sizeof(int*));
 
     if (pipes == NULL) {
         perror("An error occurred while allocating memory");
         exit(EXIT_FAILURE);
     }
 
-    for (i = 0; i < nbChild; ++i) {
+    for (i = 0; i < nbChildren; ++i) {
         pipes[i] = (int*) malloc(2 * sizeof(int));
 
         if (pipes[i] == NULL) {
@@ -74,9 +74,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    pidArr = (pid_t*) malloc(nbChild * sizeof(pid_t));
+    pidArr = (pid_t*) malloc(nbChildren * sizeof(pid_t));
 
-    for (i = 0; i < nbChild; i++) {
+    for (i = 0; i < nbChildren; i++) {
         if ((pidArr[i] = fork()) == -1) {
             fprintf(stderr, "An error occurred while creating the child %d\n", i);
             perror("Error ");
@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (pidArr[i] == 0) {
-            for (j = 0; j < nbChild; ++j) {
+            for (j = 0; j < nbChildren; ++j) {
                 if (i != j) {
                     if (close(pipes[j][PIPE_WRITE]) == -1) {
                         perror("Child: failed to close the pipe in writing mode");
@@ -114,8 +114,8 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        if (idChild == -1 || idChild >= nbChild || idChild < 0) {
-            for (i = 0; i < nbChild; ++i) {
+        if (idChild == -1 || idChild >= nbChildren || idChild < 0) {
+            for (i = 0; i < nbChildren; ++i) {
                 if (write(pipes[i][PIPE_WRITE], "STOP", 512) == -1) {
                     perror("Child: failed to write data in the pipe");
                     exit(EXIT_FAILURE);
@@ -139,9 +139,9 @@ int main(int argc, char *argv[]) {
 
             sleep(1);
         }
-    } while (idChild > -1 && idChild < nbChild);
+    } while (idChild > -1 && idChild < nbChildren);
 
-    for (i = 0; i < nbChild; ++i) {
+    for (i = 0; i < nbChildren; ++i) {
         free(pipes[i]);
     }
 
