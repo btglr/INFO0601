@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = ex1_q1 ex1_q2 ex1_q3 ex1_q4 ex1_q4_execve ex2_q1
+EXEC = ex1_q1 ex1_q2 ex1_q3 ex1_q4 ex1_q4_execve ex2_q1 ex2_q2
 OBJETS = 
 NOM_PROJET = TP4
 
