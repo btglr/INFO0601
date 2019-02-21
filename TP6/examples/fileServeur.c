@@ -16,37 +16,37 @@
 #include "structures.h"
 
 int main() {
-  int msqid;
-  requete_t requete;
-  reponse_t reponse;
+    int msqid;
+    request_t requete;
+    response_t reponse;
 
-  /* Creation de la file si elle n'existe pas */
-  if((msqid = msgget((key_t)CLE, S_IRUSR | S_IWUSR | IPC_CREAT | IPC_EXCL)) == -1) {
-    if(errno == EEXIST)
-      fprintf(stderr, "Erreur : file (cle=%d) existante\n", CLE);
-    else
-      perror("Erreur lors de la creation de la file ");
-    exit(EXIT_FAILURE);
-  }
+    /* Creation de la file si elle n'existe pas */
+    if ((msqid = msgget((key_t) CLE, S_IRUSR | S_IWUSR | IPC_CREAT | IPC_EXCL)) == -1) {
+        if (errno == EEXIST)
+            fprintf(stderr, "Erreur : file (cle=%d) existante\n", CLE);
+        else
+            perror("Erreur lors de la creation de la file ");
+        exit(EXIT_FAILURE);
+    }
 
-  /* Attente d'une requete */
-  printf("Serveur : en attente d'une requete...\n");
-  if(msgrcv(msqid, &requete, sizeof(requete_t) - sizeof(long), TYPE_REQUETE, 0) == -1) {
-    perror("Erreur lors de la reception d'une requete ");
-    exit(EXIT_FAILURE);
-  }
+    /* Attente d'une requete */
+    printf("Serveur : en attente d'une requete...\n");
+    if (msgrcv(msqid, &requete, sizeof(request_t) - sizeof(long), TYPE_REQUETE, 0) == -1) {
+        perror("Erreur lors de la reception d'une requete ");
+        exit(EXIT_FAILURE);
+    }
 
-  printf("Serveur : requete recue (%d, %d)\n", requete.valeur1, requete.valeur2);
+    printf("Serveur : requete recue (%d, %d)\n", requete.valeur1, requete.valeur2);
 
-  /* Envoi de la reponse */
-  reponse.type = TYPE_REPONSE;
-  reponse.resultat = requete.valeur1 + requete.valeur2;
+    /* Envoi de la reponse */
+    reponse.type = TYPE_REPONSE;
+    reponse.resultat = requete.valeur1 + requete.valeur2;
 
-  if(msgsnd(msqid, &reponse, sizeof(reponse_t) - sizeof(long), 0) == -1) {
-    perror("Erreur lors de l'envoi de la reponse ");
-    exit(EXIT_FAILURE);
-  }
-  printf("Serveur : reponse envoyee.\n");
+    if (msgsnd(msqid, &reponse, sizeof(response_t) - sizeof(long), 0) == -1) {
+        perror("Erreur lors de l'envoi de la reponse ");
+        exit(EXIT_FAILURE);
+    }
+    printf("Serveur : reponse envoyee.\n");
 
-  return EXIT_SUCCESS;
+    return EXIT_SUCCESS;
 }

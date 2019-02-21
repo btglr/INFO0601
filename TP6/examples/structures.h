@@ -12,7 +12,7 @@ typedef struct {
     long type;
     int valeur1;
     int valeur2;
-} requete_t;
+} request_t;
 
 /* Type de message reponse */
 #define TYPE_REPONSE 2
@@ -21,6 +21,6 @@ typedef struct {
 typedef struct {
     long type;
     int resultat;
-} reponse_t;
+} response_t;
 
 #endif

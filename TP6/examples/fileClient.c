@@ -16,8 +16,8 @@
 
 int main() {
     int msqid;
-    requete_t requete;
-    reponse_t reponse;
+    request_t requete;
+    response_t reponse;
 
     /* Recuperation de la file */
     if((msqid = msgget((key_t)CLE, 0)) == -1) {
@@ -30,7 +30,7 @@ int main() {
     requete.valeur1 = 3;
     requete.valeur2 = 6;
 
-    if(msgsnd(msqid, &requete, sizeof(requete_t) - sizeof(long), 0) == -1) {
+    if(msgsnd(msqid, &requete, sizeof(request_t) - sizeof(long), 0) == -1) {
         perror("Erreur lors de l'envoi de la requete ");
         exit(EXIT_FAILURE);
     }
@@ -38,7 +38,7 @@ int main() {
 
     /* Reception de la reponse */
     printf("Client : attente de la reponse...\n");
-    if(msgrcv(msqid, &reponse, sizeof(reponse_t) - sizeof(long), TYPE_REPONSE, 0) == -1) {
+    if(msgrcv(msqid, &reponse, sizeof(response_t) - sizeof(long), TYPE_REPONSE, 0) == -1) {
         perror("Erreur lors de la reception de la reponse ");
         exit(EXIT_FAILURE);
     }
