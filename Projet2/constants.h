@@ -198,5 +198,17 @@
  * The folder where saves are saved and opened from
  */
 #define SAVES_FOLDER "saves"
+/**
+ * The key for the message queue
+ */
+#define KEY_MESSAGE_QUEUE 100
+/**
+ * The key for the array of semaphores
+ */
+#define KEY_SEMAPHORES 200
+/**
+ * The key for the shared memory segment
+ */
+#define KEY_SEGMENT 300
 
 #endif
