@@ -2,8 +2,8 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = editor game
-OBJETS = ncurses.o fileUtils.o gameManager.o mapEditor.o mapUtils.o windowDrawer.o
+EXEC = editor game controler
+OBJETS = ncurses.o fileUtils.o gameManager.o mapEditor.o mapUtils.o windowDrawer.o messageQueueUtils.o semaphoreUtils.o sharedMemoryUtils.o
 NOM_PROJET = TP3_MINI_PROJET
 
 #
@@ -100,7 +100,13 @@ mapUtils.o: mapUtils.c mapUtils.h constants.h fileUtils.h mapEditor.h \
  gameManager.h
 windowDrawer.o: windowDrawer.c windowDrawer.h mapEditor.h ncurses.h \
  fileUtils.h constants.h mapUtils.h
+messageQueueUtils.o: messageQueueUtils.c messageQueueUtils.h ncurses.h \
+ sharedMemoryUtils.h
+semaphoreUtils.o: semaphoreUtils.c semaphoreUtils.h ncurses.h
+sharedMemoryUtils.o: sharedMemoryUtils.c sharedMemoryUtils.h ncurses.h
 editor.o: editor.c mapEditor.h fileUtils.h ncurses.h windowDrawer.h \
  constants.h mapUtils.h
 game.o: game.c ncurses.h constants.h windowDrawer.h mapEditor.h \
  fileUtils.h gameManager.h mapUtils.h
+controler.o: controler.c ncurses.h constants.h messageQueueUtils.h \
+ semaphoreUtils.h
