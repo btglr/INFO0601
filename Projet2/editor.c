@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
     else {
         printf("Please enter a filename to open: ");
 
-        if (scanf("%[a-zA-Z0-9._-/]s", filename) != 1) {
+        if (fgets(filename, MAX_FILENAME_LENGTH, stdin) == NULL) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
