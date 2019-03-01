@@ -2,7 +2,7 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = editor game controler
+EXEC = editor game controller player minotaur
 OBJETS = ncurses.o fileUtils.o gameManager.o mapEditor.o mapUtils.o windowDrawer.o messageQueueUtils.o semaphoreUtils.o sharedMemoryUtils.o
 NOM_PROJET = TP3_MINI_PROJET
 

@@ -1,7 +1,8 @@
 #ifndef PROJET2_SEMAPHORESUTILS_H
 #define PROJET2_SEMAPHORESUTILS_H
 
-#define _XOPEN_SOURCE
+#undef _GNU_SOURCE
+#define _GNU_SOURCE
 
 #include <sys/types.h>
 #include <curses.h>
@@ -13,5 +14,6 @@ void P(int semId, int num, size_t nbOperations);
 void V(int semId, int num, size_t nbOperations);
 void operate(int semId, unsigned short num, short semOp, size_t nbOperations);
 void init(int semId, unsigned short *values);
+int getSemaphoreValue(int semId, unsigned short num);
 
 #endif

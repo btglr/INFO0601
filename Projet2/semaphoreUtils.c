@@ -95,7 +95,6 @@ void operate(int semId, unsigned short num, short semOp, size_t nbOperations) {
     struct sembuf *op = (struct sembuf*) malloc(nbOperations * sizeof(struct sembuf));
 
     if (nbOperations > 1) {
-
         for (i = 0; i < nbOperations; ++i) {
             op[i].sem_num = num;
             op[i].sem_op = semOp;
@@ -109,17 +108,31 @@ void operate(int semId, unsigned short num, short semOp, size_t nbOperations) {
         op->sem_flg = 0;
     }
 
-    if(semop(semId, op, nbOperations) == -1) {
+    if (semop(semId, op, nbOperations) == -1) {
         stop_ncurses();
         perror("An error occurred while trying to operate on the semaphore");
         exit(EXIT_FAILURE);
     }
+
+    free(op);
 }
 
 void init(int semId, unsigned short *values) {
-    if(semctl(semId, 0, SETALL, values) == -1) {
+    if (semctl(semId, 0, SETALL, values) == -1) {
         stop_ncurses();
         perror("An error occurred while trying to initialize the semaphores");
         exit(EXIT_FAILURE);
     }
+}
+
+int getSemaphoreValue(int semId, unsigned short num) {
+    int value;
+
+    if ((value = semctl(semId, num, GETVAL, NULL)) == -1) {
+        stop_ncurses();
+        perror("An error occurred while trying to get the value of the semaphore");
+        exit(EXIT_FAILURE);
+    }
+
+    return value;
 }

@@ -1,7 +1,8 @@
 #ifndef PROJET2_SHAREDMEMORYUTILS_H
 #define PROJET2_SHAREDMEMORYUTILS_H
 
-#define _XOPEN_SOURCE
+#undef _GNU_SOURCE
+#define _GNU_SOURCE
 
 #include <curses.h> /* For the bool type */
 #include <sys/types.h> /* For the key_t, ssize_t types */

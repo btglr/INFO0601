@@ -32,6 +32,11 @@ ssize_t receiveMessage(int queueId, void *msg, size_t size, long type, int optio
     ssize_t readBytes;
 
     if ((readBytes = msgrcv(queueId, msg, size - sizeof(long), type, options)) == -1) {
+        if (errno == ENOMSG || errno == EINTR) {
+            /* Return - so it won't interfere with the number of read bytes */
+            return -errno;
+        }
+
         stop_ncurses();
         perror("An error occurred while trying to get a message from the queue");
         exit(EXIT_FAILURE);

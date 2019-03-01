@@ -265,4 +265,22 @@
  */
 #define MAX_MINOTAUR 5
 
+#define GET_KEYS_TYPE 1
+
+#define CONNECT_TYPE 2
+
+#define DISCONNECT_TYPE 3
+
+#define RESPONSE_TYPE 20
+
+#define MINOTAUR 10
+
+#define PLAYER 20
+
+#define SLEEP_MINOTAUR 1
+
+#define SEM_MINOTAUR 0
+
+#define SEM_PLAYER 1
+
 #endif
