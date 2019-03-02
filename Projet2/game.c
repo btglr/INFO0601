@@ -31,6 +31,8 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
+
+        strcpy(filename, strtok(filename, "\n"));
     }
 
     /* Initializing ncurses */

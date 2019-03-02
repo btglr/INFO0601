@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <curses.h>
+#include <string.h>
 #include "mapEditor.h"
 #include "fileUtils.h"
 #include "ncurses.h"
@@ -29,6 +30,8 @@ int main(int argc, char *argv[]) {
             fprintf(stderr, "An error occurred while trying to read input from keyboard\n");
             exit(EXIT_FAILURE);
         }
+
+        strcpy(filename, strtok(filename, "\n"));
     }
 
     /* Initializing ncurses */
