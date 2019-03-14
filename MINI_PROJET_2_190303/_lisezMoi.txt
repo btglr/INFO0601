@@ -1,0 +1,51 @@
+===================
+==== EXECUTION ====
+===================
+
+Pour exécuter l'éditeur de carte :
+
+./editor.out nomCarte.bin
+
+Pour exécuter le contrôleur sur une carte :
+
+./controller.out nomCarte.bin CLE_FILE_MESSAGE CLE_TABLEAU_SEMAPHORE CLE_SEGMENT_MEMOIRE
+
+Pour exécuter le joueur :
+
+./player.out CLE_FILE_MESSAGE
+
+Pour exécuter un minotaure :
+
+./minotaur.out CLE_FILE_MESSAGE [xPos] [yPos]
+
+Optionnels :
+xPos : position X où le placer
+yPos : position Y où le placer
+
+Les cartes sont dans un dossier différent (mais il ne faut pas le préciser quand on lance l'éditeur)
+
+Lorsqu'un minotaure tente de se lancer alors que le maximum a déjà été atteint, il attend.
+Quand un autre minotaure se déconnecte il continue alors son exécution.
+
+===================
+===== EDITEUR =====
+===================
+
+Clic gauche
+	Mur invisible -> Mur visible -> Vide
+
+Clic droit
+	Premier clic : sauvegarde temporairement la position cliquée
+	Deuxième clic : crée une ligne vertical ou horizontale entre les deux clics, ou crée un "coin"
+
+===================
+======= JEU =======
+===================
+
+Se joue avec les flèches du clavier
+Toucher un mur invisible -> découverte du mur
+Toucher un mur visible -> rien
+Atteindre la sortie/perdre -> découverte de tous les murs invisibles
+S'approcher d'un minotaure dans les 8 directions -> (haut, bas, gauche, droite, haut droite, haut gauche, bas droite, bas gauche) perte d'une vie, retour au début
+Le joueur ne perd pas de vie si le minotaure arrive devant la case départ (sinon défaite immédiate...)
+Pas de funérailles nationales, désolé

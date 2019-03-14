@@ -1,0 +1,38 @@
+===================
+==== EXECUTION ====
+===================
+
+Le joueur ne perd pas de vie si le minotaure arrive devant la case départ
+
+Pour exécuter l'éditeur de carte :
+
+./editor.out nomCarte.bin
+
+Pour exécuter le jeu sur une carte :
+
+./game.out nomCarte.bin
+
+Pour exécuter le jeu sur une sauvegarde de carte précise :
+./game.out nomCarte_VERSION_game.bin
+
+Les cartes et fichiers de sauvegardes sont séparés dans différents dossiers (mais il ne faut pas les préciser quand on lance l'éditeur ou le jeu)
+
+===================
+===== EDITEUR =====
+===================
+
+Clic gauche
+	Mur invisible -> Mur visible -> Vide
+
+Clic droit
+	Premier clic : sauvegarde temporairement la position cliquée
+	Deuxième clic : crée une ligne vertical ou horizontale entre les deux clics, ou crée un "coin"
+
+===================
+======= JEU =======
+===================
+
+Se joue avec les flèches du clavier
+Toucher un mur invisible -> perte d'une vie, découverte du mur
+Toucher un mur visible -> rien
+Atteindre la sortie/perdre -> découverte de tous les murs invisibles

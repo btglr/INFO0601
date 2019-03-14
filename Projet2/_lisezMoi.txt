@@ -6,14 +6,23 @@ Pour exécuter l'éditeur de carte :
 
 ./editor.out nomCarte.bin
 
-Pour exécuter le jeu sur une carte :
+Pour exécuter le contrôleur sur une carte :
 
-./game.out nomCarte.bin
+./controller.out nomCarte.bin CLE_FILE_MESSAGE CLE_TABLEAU_SEMAPHORE CLE_SEGMENT_MEMOIRE
 
-Pour exécuter le jeu sur une sauvegarde de carte précise :
-./game.out nomCarte_VERSION_game.bin
+Pour exécuter le joueur :
 
-Les cartes et fichiers de sauvegardes sont séparés dans différents dossiers (mais il ne faut pas les préciser quand on lance l'éditeur ou le jeu)
+./player.out CLE_FILE_MESSAGE
+
+Pour exécuter un minotaure :
+
+./minotaur.out CLE_FILE_MESSAGE [xPos] [yPos]
+
+Optionnels :
+xPos : position X où le placer
+yPos : position Y où le placer
+
+Les cartes sont dans un dossier différent (mais il ne faut pas le préciser quand on lance l'éditeur)
 
 ===================
 ===== EDITEUR =====
@@ -31,6 +40,9 @@ Clic droit
 ===================
 
 Se joue avec les flèches du clavier
-Toucher un mur invisible -> perte d'une vie, découverte du mur
+Toucher un mur invisible -> découverte du mur
 Toucher un mur visible -> rien
 Atteindre la sortie/perdre -> découverte de tous les murs invisibles
+S'approcher d'un minotaure dans les 8 directions -> (haut, bas, gauche, droite, haut droite, haut gauche, bas droite, bas gauche) perte d'une vie, retour au début
+Le joueur ne perd pas de vie si le minotaure arrive devant la case départ (sinon défaite immédiate...)
+Pas de funérailles nationales, désolé

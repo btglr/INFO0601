@@ -1,0 +1,6 @@
+#ifndef PROJET3_STRUCTURES_H
+#define PROJET3_STRUCTURES_H
+
+
+
+#endif

@@ -107,7 +107,7 @@ int main(int argc, char *argv[]) {
 
     fd = loadGame(filename);
 
-    drawMap(gameWindow, fd);
+    drawMapFile(gameWindow, fd);
     loadStateWindowGame(stateWindow);
 
     getPlayerPosition(fd, &posX, &posY);
