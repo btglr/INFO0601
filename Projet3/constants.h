@@ -1,0 +1,8 @@
+#ifndef PROJET3_CONSTANTS_H
+#define PROJET3_CONSTANTS_H
+
+#define MAP_WIDTH 30
+#define MAP_HEIGHT 15
+#define NUMBER_LEMMINGS 5
+
+#endif
