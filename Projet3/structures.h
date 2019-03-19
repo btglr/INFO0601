@@ -7,7 +7,7 @@ typedef struct {
     /* TYPE 1 */
     unsigned char type;
     /*
-     * Client waits for a connection from a SLAVE client on this port
+     * Client waits for a connection from a SLAVE client on this (TCP) port
      */
     unsigned short port;
 } connect_udp_master_t;
@@ -19,6 +19,15 @@ typedef struct {
      * Client waits for an UDP message with the address of a MASTER client
      */
 } connect_udp_slave_t;
+
+typedef struct {
+    /* TYPE 255 */
+    unsigned char type;
+    union {
+        connect_udp_master_t connect_udp_master;
+        connect_udp_slave_t connect_udp_slave;
+    } request;
+} request_connect_t;
 
 typedef struct {
     char address[16];
