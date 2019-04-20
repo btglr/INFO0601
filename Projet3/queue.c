@@ -9,10 +9,10 @@ queue_t *createQueue(unsigned capacity) {
     queue->capacity = capacity;
     queue->front = queue->size = 0;
     queue->rear = capacity - 1;
-    queue->array = (char **) malloc(queue->capacity * sizeof(char *));
+    queue->requests = (request_connect_t**) malloc(queue->capacity * sizeof(request_connect_t*));
 
     for (i = 0; i < capacity; ++i) {
-        queue->array[i] = (char*) malloc(MAX_LENGTH * sizeof(char));
+        queue->requests[i] = (request_connect_t*) malloc(MAX_LENGTH * sizeof(request_connect_t));
     }
 
     return queue;
@@ -26,42 +26,43 @@ int isEmpty(queue_t *queue) {
     return (queue->size == 0);
 }
 
-void enqueue(queue_t *queue, char *item) {
+void enqueue(queue_t *queue, request_connect_t *item) {
     if (isFull(queue))
         return;
 
     queue->rear = (queue->rear + 1) % queue->capacity;
 
-    strncpy(queue->array[queue->rear], item, MAX_LENGTH - 1);
-    queue->array[queue->rear][MAX_LENGTH - 1] = '\0';
+    /*strncpy(queue->requests[queue->rear], item, MAX_LENGTH - 1);
+    queue->requests[queue->rear][MAX_LENGTH - 1] = '\0';*/
 
-    /*queue->array[queue->rear] = item;*/
+    queue->requests[queue->rear] = item;
     queue->size = queue->size + 1;
     /*printf("%d enqueued to queue\n", item);*/
 }
 
-char *dequeue(queue_t *queue) {
-    char *item;
+request_connect_t * dequeue(queue_t *queue) {
+    request_connect_t *item;
 
     if (isEmpty(queue))
         return NULL;
 
-    item = queue->array[queue->front];
+    item = queue->requests[queue->front];
     queue->front = (queue->front + 1) % queue->capacity;
     queue->size = queue->size - 1;
 
     return item;
 }
 
-char *front(queue_t *queue) {
+request_connect_t * front(queue_t *queue) {
     if (isEmpty(queue))
         return NULL;
 
-    return queue->array[queue->front];
+    return queue->requests[queue->front];
 }
 
-char *rear(queue_t *queue) {
+request_connect_t * rear(queue_t *queue) {
     if (isEmpty(queue))
         return NULL;
-    return queue->array[queue->rear];
+
+    return queue->requests[queue->rear];
 }   
