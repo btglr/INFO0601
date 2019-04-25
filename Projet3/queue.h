@@ -9,15 +9,16 @@
 typedef struct queue {
     int front, rear, size;
     unsigned capacity;
-    request_connect_t** requests;
+    queue_element_t** requests;
 } queue_t;
 
 queue_t* createQueue(unsigned capacity);
 int isFull(queue_t* queue);
 int isEmpty(queue_t* queue);
-void enqueue(queue_t *queue, request_connect_t *item);
-request_connect_t * dequeue(queue_t *queue);
-request_connect_t * front(queue_t *queue);
-request_connect_t * rear(queue_t *queue);
+void enqueue(queue_t *queue, queue_element_t *item);
+queue_element_t * dequeue(queue_t *queue);
+queue_element_t * front(queue_t *queue);
+queue_element_t * rear(queue_t *queue);
+void destroyQueue(queue_t* queue);
 
 #endif
