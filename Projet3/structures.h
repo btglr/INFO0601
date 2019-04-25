@@ -21,13 +21,19 @@ typedef struct {
 } connect_udp_slave_t;
 
 typedef struct {
-    /* TYPE 255 */
+    /* TYPE 1 or 2 */
     unsigned char type;
     union {
-        connect_udp_master_t connect_udp_master;
-        connect_udp_slave_t connect_udp_slave;
+        connect_udp_master_t master;
+        connect_udp_slave_t slave;
     } request;
 } request_connect_t;
+
+typedef struct {
+    request_connect_t request;
+    struct sockaddr sourceAddr;
+    socklen_t addrLen;
+} queue_element_t;
 
 typedef struct {
     char address[16];
