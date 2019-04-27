@@ -11,7 +11,7 @@
 bool run = TRUE;
 
 void handler(int sig) {
-    if (sig == SIGINT) {
+    if (sig == SIGUSR1) {
         run = FALSE;
     }
 }
@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     int sock, port;
     socklen_t clientAddressLength;
     struct sockaddr_in serverAddress;
-    struct sockaddr *clientAddress;
+    struct sockaddr *clientAddress = NULL;
     queue_t *queue;
     queue_element_t *qElem;
     char *connection_response;
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     ssize_t bytesReceived;
     bool sentMessage;
     size_t dataLength;
-    char *connection_request;
+    char *connection_request = NULL;
     unsigned char type;
     unsigned short masterPort;
     char strAddress[16];
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
     action.sa_flags = 0;
     action.sa_handler = handler;
 
-    if (sigaction(SIGINT, &action, NULL) == -1) {
+    if (sigaction(SIGUSR1, &action, NULL) == -1) {
         fprintf(stderr, "An error occurred while catching the SIGINT signal\n");
         exit(EXIT_FAILURE);
     }
@@ -113,6 +113,9 @@ int main(int argc, char *argv[]) {
                     }
 
                     sentMessage = TRUE;
+                    free(connection_response);
+                    free(qElem->sourceAddr);
+                    free(qElem->request);
                     free(qElem);
                 }
 
@@ -133,6 +136,11 @@ int main(int argc, char *argv[]) {
                         enqueue(queue, qElem);
                     }
                 }
+
+                else {
+                    free(clientAddress);
+                    free(connection_request);
+                }
             }
 
             else {
@@ -142,12 +150,15 @@ int main(int argc, char *argv[]) {
         }
 
         else {
-            exit(EXIT_FAILURE);
+            /* Probably received the SIGINT, break out of the loop so the frees will execute */
+            break;
         }
-
-        free(clientAddress);
-        free(connection_request);
     }
+
+    /* If we get to this point then a SIGINT was received so the frees weren't done */
+
+    free(clientAddress);
+    free(connection_request);
 
     destroyQueue(queue);
     printf("\tStopped server\n");

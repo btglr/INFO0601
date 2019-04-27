@@ -23,12 +23,16 @@ void handler(int sig) {
 
 int main(int argc, char *argv[]) {
     WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
-    char serverIpAddress[16], path[MAX_PATH_LENGTH];
-    /*char *msg;*/
-    int serverPort, sockUDP, sockTCP = -1, sockSlaveClient;
+    char serverIpAddress[16];
+    char path[MAX_PATH_LENGTH];
+    int serverPort;
+    int sockUDP;
+    int sockTCP = -1;
+    int sockSlaveClient;
     int ch;
     unsigned short tcpPort;
-    struct sockaddr_in serverUDPAddress, serverTCPAddress;
+    struct sockaddr_in serverUDPAddress;
+    struct sockaddr_in serverTCPAddress;
     char *connection_response;
     int isMaster;
     int mapFd;
@@ -183,6 +187,8 @@ int main(int argc, char *argv[]) {
         memcpy(address, connection_response, sizeof(char) * 16);
         memcpy(&port, connection_response + sizeof(char) * 16, sizeof(unsigned short));
 
+        free(connection_response);
+
         printf("Received response from server, TCP Port: %d | Address: %s\n", port, address);
 
         sockTCP = createSocket(SOCK_STREAM, IPPROTO_TCP);
@@ -297,6 +303,8 @@ int main(int argc, char *argv[]) {
     delwin(borderGameWindow);
     delwin(stateWindow);
     delwin(borderStateWindow);
+
+    free(map);
 
     /* Stopping ncurses */
     stop_ncurses();
