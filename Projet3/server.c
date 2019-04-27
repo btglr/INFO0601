@@ -6,6 +6,7 @@
 #include "queue.h"
 #include "socketUtils.h"
 #include "structures.h"
+#include "memoryUtils.h"
 
 bool run = TRUE;
 
@@ -21,12 +22,16 @@ int main(int argc, char *argv[]) {
     struct sockaddr_in serverAddress;
     struct sockaddr *clientAddress;
     queue_t *queue;
-    connect_udp_master_t *request_connect;
     queue_element_t *qElem;
-    send_address_udp_t response_connect;
+    char *connection_response;
     struct sigaction action;
     ssize_t bytesReceived;
     bool sentMessage;
+    size_t dataLength;
+    char *connection_request;
+    unsigned char type;
+    unsigned short masterPort;
+    char strAddress[16];
 
     if (argc < 2) {
         fprintf(stderr, "At least 1 argument is required\n");
@@ -40,6 +45,7 @@ int main(int argc, char *argv[]) {
     bindAddress(sock, &serverAddress);
 
     sigemptyset(&action.sa_mask);
+    action.sa_flags = 0;
     action.sa_handler = handler;
 
     if (sigaction(SIGINT, &action, NULL) == -1) {
@@ -55,78 +61,172 @@ int main(int argc, char *argv[]) {
 
     /* FIFO queue, first client connected will be the first "served" */
     while (run) {
-        request_connect = (connect_udp_master_t*) malloc(sizeof(connect_udp_master_t));
-        clientAddress = (struct sockaddr*) malloc(sizeof(struct sockaddr));
+        clientAddress = (struct sockaddr*) malloc_check(sizeof(struct sockaddr));
         memset(clientAddress, 0, sizeof(struct sockaddr));
         clientAddressLength = sizeof(struct sockaddr_in);
 
+        dataLength = sizeof(unsigned char) + sizeof(unsigned short);
+        connection_request = (char*) malloc_check(dataLength);
+
         /* Receive in the biggest struct of the two, depends on the fact that the first variable is the same for both structs  */
-        bytesReceived = receiveUDP(sock, request_connect, sizeof(connect_udp_master_t), 0, clientAddress, &clientAddressLength);
+        bytesReceived = receiveUDP(sock, connection_request, dataLength, 0, clientAddress, &clientAddressLength);
 
-        /* Master connected */
-        if (bytesReceived == sizeof(connect_udp_master_t)) {
-            printf("Master just connected (TCP Port: %d)\n", request_connect->port);
+        if (bytesReceived != -1) {
+            memcpy(&type, connection_request, sizeof(unsigned char));
 
-            /* If the front of the queue is a slave client then we send him the master's info */
-            if (front(queue) != NULL && ((connect_udp_master_t*) front(queue)->request)->type == TYPE_CONNECT_UDP_SLAVE) {
-                qElem = dequeue(queue);
-
-                response_connect.port = request_connect->port;
-
-                if (inet_ntop(AF_INET, &((struct sockaddr_in*) clientAddress)->sin_addr, response_connect.address, INET_ADDRSTRLEN) == NULL) {
-                    exit(EXIT_FAILURE);
+            if (type == TYPE_CONNECT_UDP_MASTER || type == TYPE_CONNECT_UDP_SLAVE) {
+                if (type == TYPE_CONNECT_UDP_MASTER) {
+                    memcpy(&masterPort, connection_request + sizeof(unsigned char), sizeof(unsigned short));
+                    printf("Master just connected (TCP Port: %d)\n", masterPort);
                 }
 
-                printf("Sending address and TCP port (%d) to the Slave client\n", response_connect.port);
-                sendUDP(sock, &response_connect, sizeof(send_address_udp_t), qElem->sourceAddr, qElem->addrLen);
-                sentMessage = TRUE;
+                else {
+                    printf("Slave just connected\n");
+                }
+
+                if (front(queue) != NULL) {
+                    qElem = front(queue);
+                    memcpy(&type, qElem->request, sizeof(unsigned char));
+                    dequeue(queue);
+                    dataLength = sizeof(char) * 16 + sizeof(unsigned short);
+                    connection_response = (char*) malloc_check(dataLength);
+
+                    if (type == TYPE_CONNECT_UDP_SLAVE) {
+                        network_addr_to_str(AF_INET, &((struct sockaddr_in*) clientAddress)->sin_addr, strAddress, INET_ADDRSTRLEN);
+                    }
+
+                    else {
+                        memcpy(&masterPort, qElem->request + sizeof(unsigned char), sizeof(unsigned short));
+                        network_addr_to_str(AF_INET, &((struct sockaddr_in*) qElem->sourceAddr)->sin_addr, strAddress, INET_ADDRSTRLEN);
+                    }
+
+                    memcpy(connection_response, strAddress, sizeof(char) * 16);
+                    memcpy(connection_response + sizeof(char) * 16, &masterPort, sizeof(unsigned short));
+                    printf("Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
+
+                    if (type == TYPE_CONNECT_UDP_SLAVE) {
+                        sendUDP(sock, connection_response, dataLength, qElem->sourceAddr, qElem->addrLen);
+                    }
+
+                    else {
+                        sendUDP(sock, connection_response, dataLength, clientAddress, clientAddressLength);
+                    }
+
+                    sentMessage = TRUE;
+                }
+
+                else {
+                    sentMessage = FALSE;
+                }
+
+                if (!sentMessage) {
+                    if (isFull(queue)) {
+                        fprintf(stderr, "Maximum number of clients in queue reached\n");
+                    }
+
+                    else {
+                        qElem = (queue_element_t *) malloc(sizeof(queue_element_t));
+                        qElem->request = connection_request;
+                        qElem->sourceAddr = clientAddress;
+                        qElem->addrLen = clientAddressLength;
+                        enqueue(queue, qElem);
+                    }
+                }
+            }
+
+            /* Master connected */
+/*            if (type == TYPE_CONNECT_UDP_MASTER) {
+                memcpy(&masterPort, connection_request + sizeof(unsigned char), sizeof(unsigned short));
+
+                printf("Master just connected (TCP Port: %d)\n", masterPort);
+
+                if (front(queue) != NULL) {
+                    qElem = front(queue);
+                    memcpy(&type, qElem->request, sizeof(unsigned char));
+
+                    if (type == TYPE_CONNECT_UDP_SLAVE) {
+                        dequeue(queue);
+
+                        dataLength = sizeof(char) * 16 + sizeof(unsigned short);
+                        connection_response = (char*) malloc_check(dataLength);
+
+                        network_addr_to_str(AF_INET, &((struct sockaddr_in*) clientAddress)->sin_addr, strAddress, INET_ADDRSTRLEN);
+
+                        memcpy(connection_response, strAddress, sizeof(char) * 16);
+                        memcpy(connection_response + sizeof(char) * 16, &masterPort, sizeof(unsigned short));
+
+                        printf("Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
+                        sendUDP(sock, connection_response, sizeof(send_address_udp_t), qElem->sourceAddr, qElem->addrLen);
+                        sentMessage = TRUE;
+                    }
+
+                    else {
+                        sentMessage = FALSE;
+                    }
+                }
+
+                else {
+                    sentMessage = FALSE;
+                }
+            }
+
+            else if (type == TYPE_CONNECT_UDP_SLAVE) {
+                printf("Slave just connected\n");
+
+                if (front(queue) != NULL) {
+                    qElem = front(queue);
+                    memcpy(&type, qElem->request, sizeof(unsigned char));
+
+                    if (type == TYPE_CONNECT_UDP_MASTER) {
+                        dequeue(queue);
+
+                        memcpy(&masterPort, qElem->request + sizeof(unsigned char), sizeof(unsigned short));
+
+                        dataLength = sizeof(char) * 16 + sizeof(unsigned short);
+                        connection_response = (char*) malloc_check(dataLength);
+
+                        network_addr_to_str(AF_INET, &((struct sockaddr_in*) qElem->sourceAddr)->sin_addr, strAddress, INET_ADDRSTRLEN);
+
+                        memcpy(connection_response, strAddress, sizeof(char) * 16);
+                        memcpy(connection_response + sizeof(char) * 16, &masterPort, sizeof(unsigned short));
+
+                        printf("Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
+                        sendUDP(sock, connection_response, sizeof(send_address_udp_t), clientAddress, clientAddressLength);
+                        sentMessage = TRUE;
+                    }
+
+                    else {
+                        sentMessage = FALSE;
+                    }
+                }
+
+                else {
+                    sentMessage = FALSE;
+                }
             }
 
             else {
-                sentMessage = FALSE;
+                fprintf(stderr, "Error: Unknown type received\n");
+                exit(EXIT_FAILURE);
             }
-        }
 
-        else if (bytesReceived == sizeof(connect_udp_slave_t)) {
-            printf("Slave just connected\n");
-
-            /* If the front of the queue is a master client then we dequeue and get his info */
-            if (front(queue) != NULL && ((connect_udp_master_t*) front(queue)->request)->type == TYPE_CONNECT_UDP_MASTER) {
-                qElem = dequeue(queue);
-
-                response_connect.port = ((connect_udp_master_t*) (qElem->request))->port;
-
-                if (inet_ntop(AF_INET, &((struct sockaddr_in*) qElem->sourceAddr)->sin_addr, response_connect.address, INET_ADDRSTRLEN) == NULL) {
-                    exit(EXIT_FAILURE);
+            if (!sentMessage) {
+                if (isFull(queue)) {
+                    fprintf(stderr, "Maximum number of clients in queue reached\n");
                 }
 
-                printf("Sending Address and TCP Port (%d) to the Slave client\n", response_connect.port);
-                sendUDP(sock, &response_connect, sizeof(send_address_udp_t), clientAddress, clientAddressLength);
-                sentMessage = TRUE;
-            }
-
-            else {
-                sentMessage = FALSE;
-            }
+                else {
+                    qElem = (queue_element_t *) malloc(sizeof(queue_element_t));
+                    qElem->request = connection_request;
+                    qElem->sourceAddr = clientAddress;
+                    qElem->addrLen = clientAddressLength;
+                    enqueue(queue, qElem);
+                }
+            }*/
         }
 
         else {
-            fprintf(stderr, "Error: Unknown structure received\n");
             exit(EXIT_FAILURE);
-        }
-
-        if (!sentMessage) {
-            if (isFull(queue)) {
-                fprintf(stderr, "Maximum number of clients in queue reached\n");
-            }
-
-            else {
-                qElem = (queue_element_t *) malloc(sizeof(queue_element_t));
-                qElem->request = request_connect;
-                qElem->sourceAddr = clientAddress;
-                qElem->addrLen = clientAddressLength;
-                enqueue(queue, qElem);
-            }
         }
     }
 

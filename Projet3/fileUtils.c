@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include "fileUtils.h"
 #include "ncurses.h"
+#include "memoryUtils.h"
 #include <string.h>
 #include <stdarg.h>
 
@@ -105,13 +106,7 @@ void closeFile(int fd) {
 }
 
 char *getPath(char *folder, char *filename) {
-    char *path = (char*) malloc((strlen(folder) + strlen(filename) + 2) * sizeof(char));
-
-    if (path == NULL) {
-        stop_ncurses();
-        fprintf(stderr, "An error occurred while trying to allocate memory\n");
-        exit(EXIT_FAILURE);
-    }
+    char *path = (char*) malloc_check((strlen(folder) + strlen(filename) + 2) * sizeof(char));
 
     sprintf(path, "%s/%s", folder, filename);
 

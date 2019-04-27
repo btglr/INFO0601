@@ -22,7 +22,7 @@ typedef struct {
 } connect_udp_slave_t;
 
 typedef struct {
-    void *request;
+    char *request;
     struct sockaddr *sourceAddr;
     socklen_t addrLen;
 } queue_element_t;

@@ -13,5 +13,7 @@ ssize_t receiveUDP(int sock, void *msg, size_t msgLength, int flags, void *srcAd
 void listenSocket(int sock, int nbQueue);
 int acceptSocket(int sock);
 void connectSocket(int sock, const void *addr);
+void str_addr_to_network(int family, const char *addr, void *addrBuffer);
+void network_addr_to_str(int family, const void *addr, char *addrBuffer, socklen_t len);
 
 #endif

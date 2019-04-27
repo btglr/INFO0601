@@ -1,9 +1,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "constants.h"
 #include "socketUtils.h"
 #include "structures.h"
+#include "memoryUtils.h"
 
 int main(int argc, char *argv[]) {
     char serverIpAddress[16], filename[MAX_FILENAME_LENGTH];
@@ -11,10 +13,12 @@ int main(int argc, char *argv[]) {
     int serverPort, sockUDP, sockTCP = -1, sockSlaveClient;
     unsigned short tcpPort;
     struct sockaddr_in serverUDPAddress, serverTCPAddress;
-    connect_udp_master_t master;
-    connect_udp_slave_t slave;
-    send_address_udp_t response_connect;
+    char *connection_response;
     int isMaster;
+    char *connection_request;
+    size_t dataLength;
+    unsigned short port;
+    char address[16];
     /*int isSlave;*/
 
     /*
@@ -62,10 +66,13 @@ int main(int argc, char *argv[]) {
         printf("Filename: %s\n", filename);
         printf("TCP port: %d\n", tcpPort);
 
-        master.type = TYPE_CONNECT_UDP_MASTER;
-        master.port = tcpPort;
+        dataLength = sizeof(unsigned char) + sizeof(unsigned short);
+        connection_request = (char*) malloc_check(dataLength);
 
-        sendUDP(sockUDP, &master, sizeof(connect_udp_master_t), &serverUDPAddress, sizeof(struct sockaddr_in));
+        connection_request[0] = TYPE_CONNECT_UDP_MASTER;
+        memcpy(connection_request + sizeof(unsigned char), &tcpPort, sizeof(unsigned short));
+
+        sendUDP(sockUDP, connection_request, dataLength, &serverUDPAddress, sizeof(struct sockaddr_in));
 
         sockTCP = createSocket(SOCK_STREAM, IPPROTO_TCP);
         initAddress(&serverTCPAddress, tcpPort, serverIpAddress);
@@ -73,8 +80,12 @@ int main(int argc, char *argv[]) {
     }
 
     else {
-        slave.type = TYPE_CONNECT_UDP_SLAVE;
-        sendUDP(sockUDP, &slave, sizeof(connect_udp_slave_t), &serverUDPAddress, sizeof(struct sockaddr_in));
+        dataLength = sizeof(unsigned char);
+        connection_request = (char*) malloc_check(dataLength);
+
+        connection_request[0] = TYPE_CONNECT_UDP_SLAVE;
+
+        sendUDP(sockUDP, connection_request, dataLength, &serverUDPAddress, sizeof(struct sockaddr_in));
     }
 
     if (isMaster && sockTCP != -1) {
@@ -92,12 +103,19 @@ int main(int argc, char *argv[]) {
 
     else {
         /* Client is a slave, wait for message from server */
-        receiveUDP(sockUDP, &response_connect, sizeof(send_address_udp_t), 0, NULL, NULL);
 
-        printf("Received response from server, TCP Port: %d\n", response_connect.port);
+        dataLength = sizeof(char) * 16 + sizeof(unsigned short);
+        connection_response = (char*) malloc_check(dataLength);
+
+        receiveUDP(sockUDP, connection_response, dataLength, 0, NULL, NULL);
+
+        memcpy(address, connection_response, sizeof(char) * 16);
+        memcpy(&port, connection_response + sizeof(char) * 16, sizeof(unsigned short));
+
+        printf("Received response from server, TCP Port: %d | Address: %s\n", port, address);
 
         sockTCP = createSocket(SOCK_STREAM, IPPROTO_TCP);
-        initAddress(&serverTCPAddress, response_connect.port, response_connect.address);
+        initAddress(&serverTCPAddress, port, address);
         connectSocket(sockTCP, &serverTCPAddress);
 
         /* Can now read/write */

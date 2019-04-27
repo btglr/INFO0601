@@ -30,11 +30,7 @@ void initAddress(struct sockaddr_in *address, int port, char* ipAddress) {
     address->sin_family = AF_INET;
     address->sin_port = htons((uint16_t) port);
 
-    if (inet_pton(AF_INET, ipAddress, &address->sin_addr) != 1) {
-        stop_ncurses();
-        perror("An error occurred while converting the IP address");
-        exit(EXIT_FAILURE);
-    }
+    str_addr_to_network(AF_INET, ipAddress, &address->sin_addr);
 }
 
 ssize_t sendUDP(int sock, const void *msg, size_t msgLength, const void *destAddr, socklen_t addrLength) {
@@ -95,6 +91,22 @@ void connectSocket(int sock, const void *addr) {
     if (connect(sock, (struct sockaddr*) addr, sizeof(struct sockaddr_in)) == -1) {
         stop_ncurses();
         perror("An error occurred while connecting to an established socket");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void str_addr_to_network(int family, const char *addr, void *addrBuffer) {
+    if (inet_pton(family, addr, addrBuffer) <= 0) {
+        stop_ncurses();
+        fprintf(stderr, "An error occurred while converting the string address to a network address\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void network_addr_to_str(int family, const void *addr, char *addrBuffer, socklen_t len) {
+    if (inet_ntop(family, addr, addrBuffer, len) == NULL) {
+        stop_ncurses();
+        fprintf(stderr, "An error occurred while converting the network address to a string address\n");
         exit(EXIT_FAILURE);
     }
 }

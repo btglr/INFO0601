@@ -3,7 +3,7 @@
 #
 
 EXEC = server client
-OBJETS = ncurses.o fileUtils.o socketUtils.o queue.o
+OBJETS = ncurses.o fileUtils.o socketUtils.o queue.o memoryUtils.o
 NOM_PROJET = PROJET_FINAL
 
 #
@@ -91,7 +91,10 @@ archive: clean
 
 # DEPENDANCES
 ncurses.o: ncurses.c ncurses.h
-fileUtils.o: fileUtils.c fileUtils.h ncurses.h
+fileUtils.o: fileUtils.c fileUtils.h ncurses.h memoryUtils.h
 socketUtils.o: socketUtils.c socketUtils.h ncurses.h
-server.o: server.c
-client.o: client.c constants.h socketUtils.h
+queue.o: queue.c queue.h structures.h constants.h memoryUtils.h
+memoryUtils.o: memoryUtils.c memoryUtils.h ncurses.h
+server.o: server.c queue.h structures.h constants.h socketUtils.h \
+ memoryUtils.h
+client.o: client.c constants.h socketUtils.h structures.h memoryUtils.h

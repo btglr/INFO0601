@@ -1,12 +1,13 @@
 #include <string.h>
 #include "queue.h"
+#include "memoryUtils.h"
 
 queue_t *createQueue(unsigned capacity) {
-    queue_t *queue = (queue_t *) malloc(sizeof(queue_t));
+    queue_t *queue = (queue_t *) malloc_check(sizeof(queue_t));
     queue->capacity = capacity;
     queue->front = queue->size = 0;
     queue->rear = capacity - 1;
-    queue->requests = (queue_element_t**) malloc(queue->capacity * sizeof(queue_element_t*));
+    queue->requests = (queue_element_t**) malloc_check(queue->capacity * sizeof(queue_element_t*));
 
     /*for (i = 0; i < capacity; ++i) {
         queue->requests[i] = (queue_element_t*) malloc(MAX_LENGTH * sizeof(queue_element_t));
