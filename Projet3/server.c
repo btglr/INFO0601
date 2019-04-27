@@ -113,6 +113,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     sentMessage = TRUE;
+                    free(qElem);
                 }
 
                 else {
@@ -134,100 +135,18 @@ int main(int argc, char *argv[]) {
                 }
             }
 
-            /* Master connected */
-/*            if (type == TYPE_CONNECT_UDP_MASTER) {
-                memcpy(&masterPort, connection_request + sizeof(unsigned char), sizeof(unsigned short));
-
-                printf("Master just connected (TCP Port: %d)\n", masterPort);
-
-                if (front(queue) != NULL) {
-                    qElem = front(queue);
-                    memcpy(&type, qElem->request, sizeof(unsigned char));
-
-                    if (type == TYPE_CONNECT_UDP_SLAVE) {
-                        dequeue(queue);
-
-                        dataLength = sizeof(char) * 16 + sizeof(unsigned short);
-                        connection_response = (char*) malloc_check(dataLength);
-
-                        network_addr_to_str(AF_INET, &((struct sockaddr_in*) clientAddress)->sin_addr, strAddress, INET_ADDRSTRLEN);
-
-                        memcpy(connection_response, strAddress, sizeof(char) * 16);
-                        memcpy(connection_response + sizeof(char) * 16, &masterPort, sizeof(unsigned short));
-
-                        printf("Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
-                        sendUDP(sock, connection_response, sizeof(send_address_udp_t), qElem->sourceAddr, qElem->addrLen);
-                        sentMessage = TRUE;
-                    }
-
-                    else {
-                        sentMessage = FALSE;
-                    }
-                }
-
-                else {
-                    sentMessage = FALSE;
-                }
-            }
-
-            else if (type == TYPE_CONNECT_UDP_SLAVE) {
-                printf("Slave just connected\n");
-
-                if (front(queue) != NULL) {
-                    qElem = front(queue);
-                    memcpy(&type, qElem->request, sizeof(unsigned char));
-
-                    if (type == TYPE_CONNECT_UDP_MASTER) {
-                        dequeue(queue);
-
-                        memcpy(&masterPort, qElem->request + sizeof(unsigned char), sizeof(unsigned short));
-
-                        dataLength = sizeof(char) * 16 + sizeof(unsigned short);
-                        connection_response = (char*) malloc_check(dataLength);
-
-                        network_addr_to_str(AF_INET, &((struct sockaddr_in*) qElem->sourceAddr)->sin_addr, strAddress, INET_ADDRSTRLEN);
-
-                        memcpy(connection_response, strAddress, sizeof(char) * 16);
-                        memcpy(connection_response + sizeof(char) * 16, &masterPort, sizeof(unsigned short));
-
-                        printf("Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
-                        sendUDP(sock, connection_response, sizeof(send_address_udp_t), clientAddress, clientAddressLength);
-                        sentMessage = TRUE;
-                    }
-
-                    else {
-                        sentMessage = FALSE;
-                    }
-                }
-
-                else {
-                    sentMessage = FALSE;
-                }
-            }
-
             else {
-                fprintf(stderr, "Error: Unknown type received\n");
+                fprintf(stderr, "Expected request type %d or %d, received type %d\n", TYPE_CONNECT_UDP_MASTER, TYPE_CONNECT_UDP_SLAVE, type);
                 exit(EXIT_FAILURE);
             }
-
-            if (!sentMessage) {
-                if (isFull(queue)) {
-                    fprintf(stderr, "Maximum number of clients in queue reached\n");
-                }
-
-                else {
-                    qElem = (queue_element_t *) malloc(sizeof(queue_element_t));
-                    qElem->request = connection_request;
-                    qElem->sourceAddr = clientAddress;
-                    qElem->addrLen = clientAddressLength;
-                    enqueue(queue, qElem);
-                }
-            }*/
         }
 
         else {
             exit(EXIT_FAILURE);
         }
+
+        free(clientAddress);
+        free(connection_request);
     }
 
     destroyQueue(queue);
