@@ -13,9 +13,13 @@ ssize_t copyFile(char *srcFolder, char *src, char *destFolder, char *dest) {
     int fdOrig, fdDest;
     char buf[1024];
     ssize_t bytesRead, bytesWritten = 0;
+    char *srcPath, *destPath;
 
-    fdOrig = openFile(srcFolder, src, O_RDONLY);
-    fdDest = openFile(destFolder, dest, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    srcPath = getPath(srcFolder, src);
+    destPath = getPath(destFolder, dest);
+
+    fdOrig = openFile(srcPath, O_RDONLY);
+    fdDest = openFile(destPath, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 
     while ((bytesRead = readFile(fdOrig, buf, sizeof(buf))) > 0) {
         bytesWritten += writeFile(fdDest, buf, bytesRead);
@@ -27,12 +31,10 @@ ssize_t copyFile(char *srcFolder, char *src, char *destFolder, char *dest) {
     return bytesWritten;
 }
 
-int openFile(char *folder, char *filename, int flags, ...) {
+int openFile(char *path, int flags, ...) {
     va_list va;
     mode_t mode;
     int fd;
-
-    char *path = getPath(folder, filename);
 
     va_start(va, flags);
     mode = va_arg(va, mode_t);
@@ -44,8 +46,6 @@ int openFile(char *folder, char *filename, int flags, ...) {
     }
 
     va_end(va);
-
-    free(path);
 
     return fd;
 }

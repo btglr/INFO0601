@@ -30,12 +30,12 @@ ssize_t copyFile(char *srcFolder, char *src, char *destFolder, char *dest);
 
 /**
  * Opens the file pointed by @p filename with the given @p flags
- * @param filename The filename
+ * @param path The path
  * @param flags The flags to open the file with
  * @param ... If used with O_CREAT, the mode to set the file with
  * @return The file descriptor pointing to the file
  */
-int openFile(char *folder, char *filename, int flags, ...);
+int openFile(char *path, int flags, ...);
 
 /**
  * Seeks at the @p offset starting either from the beginning, current position or end
