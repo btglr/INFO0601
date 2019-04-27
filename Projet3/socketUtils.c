@@ -49,10 +49,10 @@ ssize_t sendUDP(int sock, const void *msg, size_t msgLength, const void *destAdd
     return bytesSent;
 }
 
-ssize_t receiveUDP(int sock, void *msg, size_t msgLength, void *srcAddr, socklen_t *addrLength) {
+ssize_t receiveUDP(int sock, void *msg, size_t msgLength, int flags, void *srcAddr, socklen_t *addrLength) {
     ssize_t bytesReceived;
 
-    if ((bytesReceived = recvfrom(sock, msg, msgLength, 0, (struct sockaddr*) srcAddr, addrLength)) == -1) {
+    if ((bytesReceived = recvfrom(sock, msg, msgLength, flags, (struct sockaddr*) srcAddr, addrLength)) == -1) {
         if (errno != EINTR) {
             stop_ncurses();
             perror("An error occurred while receiving the message via the socket");

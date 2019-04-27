@@ -48,6 +48,6 @@
 #define TYPE_STATE_DEAD 2
 #define TYPE_STATE_BLOCKED 3
 
-#define QUEUE_SIZE 2
+#define QUEUE_SIZE 10
 
 #endif

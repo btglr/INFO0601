@@ -1,8 +1,6 @@
 #include <string.h>
 #include "queue.h"
 
-#define MAX_LENGTH 256
-
 queue_t *createQueue(unsigned capacity) {
     queue_t *queue = (queue_t *) malloc(sizeof(queue_t));
     queue->capacity = capacity;

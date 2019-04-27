@@ -2,6 +2,7 @@
 #define PROJET3_STRUCTURES_H
 
 #include "constants.h"
+#include <unistd.h>
 
 typedef struct {
     /* TYPE 1 */
@@ -21,17 +22,8 @@ typedef struct {
 } connect_udp_slave_t;
 
 typedef struct {
-    /* TYPE 1 or 2 */
-    unsigned char type;
-    union {
-        connect_udp_master_t master;
-        connect_udp_slave_t slave;
-    } request;
-} request_connect_t;
-
-typedef struct {
-    request_connect_t request;
-    struct sockaddr sourceAddr;
+    void *request;
+    struct sockaddr *sourceAddr;
     socklen_t addrLen;
 } queue_element_t;
 
