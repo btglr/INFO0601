@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include "fileUtils.h"
-#include "ncurses.h"
+#include "../ncurses.h"
 #include "memoryUtils.h"
 #include <string.h>
 #include <stdarg.h>

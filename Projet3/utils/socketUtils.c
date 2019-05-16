@@ -4,7 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include "socketUtils.h"
-#include "ncurses.h"
+#include "../ncurses.h"
 
 int createSocket(int type, int protocol) {
     int fd;
@@ -60,6 +60,10 @@ ssize_t receiveUDP(int sock, void *msg, size_t msgLength, int flags, void *srcAd
 }
 
 void bindAddress(int sock, const void *addr) {
+    /* Allows the socket to connect to a port that's in TIME_WAIT */
+    /*int opt = 1;
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int));*/
+
     if (bind(sock, (struct sockaddr*) addr, sizeof(struct sockaddr_in)) == -1) {
         stop_ncurses();
         perror("An error occurred while binding the address to the socket");
