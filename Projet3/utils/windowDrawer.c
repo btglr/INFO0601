@@ -4,9 +4,9 @@
 #include <string.h>
 #include "windowDrawer.h"
 #include "ncurses.h"
-#include "utils/fileUtils.h"
-#include "constants.h"
-#include "utils/utils.h"
+#include "fileUtils.h"
+#include "../structures/constants.h"
+#include "utils.h"
 
 int cpt = 0;
 

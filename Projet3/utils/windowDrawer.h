@@ -8,7 +8,7 @@
 #ifndef TP3_WINDOWDRAWER_H
 #define TP3_WINDOWDRAWER_H
 
-#include "structures.h"
+#include "../structures/structures.h"
 
 /**
  * Initializes and returns a window with the given parameters

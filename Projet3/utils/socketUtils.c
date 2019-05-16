@@ -4,7 +4,7 @@
 #include <string.h>
 #include <errno.h>
 #include "socketUtils.h"
-#include "../ncurses.h"
+#include "ncurses.h"
 
 int createSocket(int type, int protocol) {
     int fd;

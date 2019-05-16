@@ -1,6 +1,6 @@
 #include <curses.h>
 #include "gameUtils.h"
-#include "../windowDrawer.h"
+#include "windowDrawer.h"
 
 void initializeGame(int mapWidth, int mapHeight, char *map, WINDOW **borderInformationWindow,
                     WINDOW **informationWindow, WINDOW **borderGameWindow, WINDOW **gameWindow,

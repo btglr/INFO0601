@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include "memoryUtils.h"
-#include "../ncurses.h"
+#include "ncurses.h"
 
 void *malloc_check(size_t length) {
     void *var;

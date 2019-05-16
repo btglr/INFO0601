@@ -2,8 +2,8 @@
 # CONFIGURATION GENERALE
 #
 
-EXEC = server client
-OBJETS = ncurses.o fileUtils.o socketUtils.o queue.o memoryUtils.o
+EXEC = server client mapGenerator
+OBJETS = utils/ncurses.o utils/fileUtils.o utils/socketUtils.o structures/queue.o utils/memoryUtils.o utils/windowDrawer.o utils/gameUtils.o utils/utils.o utils/threadUtils.o
 NOM_PROJET = PROJET_FINAL
 
 #
@@ -24,10 +24,10 @@ OBJETS_O = $(OBJETS) $(EXEC_O)
 #
 
 CC = gcc
-CCFLAGS_STD = -Wall -O3 -Werror -ansi -pedantic
+CCFLAGS_STD = -Wall -O3 -Werror -ansi -pedantic -ggdb3
 CCFLAGS_DEBUG = -D _DEBUG_
 CCFLAGS = $(CCFLAGS_STD) -D _GNU_SOURCE
-CCLIBS = -lncurses
+CCLIBS = -lncurses -lm
 
 #
 # REGLES
@@ -90,11 +90,31 @@ archive: clean
 	@echo "Termine."
 
 # DEPENDANCES
-ncurses.o: ncurses.c ncurses.h
-fileUtils.o: fileUtils.c fileUtils.h ncurses.h memoryUtils.h
-socketUtils.o: socketUtils.c socketUtils.h ncurses.h
-queue.o: queue.c queue.h structures.h constants.h memoryUtils.h
-memoryUtils.o: memoryUtils.c memoryUtils.h ncurses.h
-server.o: server.c queue.h structures.h constants.h socketUtils.h \
- memoryUtils.h
-client.o: client.c constants.h socketUtils.h structures.h memoryUtils.h
+utils/ncurses.o: utils/ncurses.c utils/ncurses.h
+utils/fileUtils.o: utils/fileUtils.c utils/fileUtils.h utils/ncurses.h \
+ utils/memoryUtils.h
+utils/socketUtils.o: utils/socketUtils.c utils/socketUtils.h \
+ utils/ncurses.h
+structures/queue.o: structures/queue.c structures/queue.h \
+ structures/structures.h structures/constants.h \
+ structures/../utils/memoryUtils.h
+utils/memoryUtils.o: utils/memoryUtils.c utils/memoryUtils.h \
+ utils/ncurses.h
+utils/windowDrawer.o: utils/windowDrawer.c utils/windowDrawer.h \
+ utils/../structures/structures.h utils/../structures/constants.h \
+ utils/ncurses.h utils/fileUtils.h utils/../structures/constants.h \
+ utils/utils.h
+utils/gameUtils.o: utils/gameUtils.c utils/gameUtils.h \
+ utils/windowDrawer.h utils/../structures/structures.h \
+ utils/../structures/constants.h
+utils/utils.o: utils/utils.c utils/utils.h
+utils/threadUtils.o: utils/threadUtils.c utils/threadUtils.h
+server.o: server.c structures/queue.h structures/structures.h \
+ structures/constants.h utils/socketUtils.h structures/structures.h \
+ utils/memoryUtils.h
+client.o: client.c utils/ncurses.h structures/constants.h \
+ utils/socketUtils.h structures/structures.h structures/constants.h \
+ utils/memoryUtils.h utils/fileUtils.h utils/windowDrawer.h \
+ utils/../structures/structures.h utils/gameUtils.h
+mapGenerator.o: mapGenerator.c structures/constants.h utils/memoryUtils.h \
+ utils/fileUtils.h utils/ncurses.h
