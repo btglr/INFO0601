@@ -7,6 +7,7 @@
 #include "fileUtils.h"
 #include "../structures/constants.h"
 #include "utils.h"
+#include "chunkManager.h"
 
 int cpt = 0;
 
@@ -307,11 +308,3 @@ void printInformation(WINDOW *window, char *s, ...) {
     cpt++;
 }
 
-chunk_size_t determineChunkSize(int mapWidth, int mapHeight) {
-    chunk_size_t chunk;
-
-    chunk.width = isPrime(mapWidth) ? mapWidth : findDivisor(mapWidth);
-    chunk.height = isPrime(mapHeight) ? mapHeight : findDivisor(mapHeight);
-
-    return chunk;
-}

@@ -85,6 +85,4 @@ WINDOW *createGameWindow(WINDOW *border, int mapWidth, int mapHeight);
 
 void printInformation(WINDOW *window, char *s, ...);
 
-chunk_size_t determineChunkSize(int mapWidth, int mapHeight);
-
 #endif
