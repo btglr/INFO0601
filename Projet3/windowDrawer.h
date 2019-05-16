@@ -76,4 +76,15 @@ void updateStateWindow(WINDOW *window, int x, int y, char *s, ...);
  */
 void clearLine(WINDOW *window, int x, int y);
 
+WINDOW *createBorderInformationWindow(int mapWidth);
+WINDOW *createInformationWindow(WINDOW *border, int mapWidth);
+WINDOW *createBorderStateWindow(int mapWidth);
+WINDOW *createStateWindow(WINDOW *border, int mapWidth);
+WINDOW *createBorderGameWindow(int mapWidth, int mapHeight);
+WINDOW *createGameWindow(WINDOW *border, int mapWidth, int mapHeight);
+
+void printInformation(WINDOW *window, char *s, ...);
+
+chunk_size_t determineChunkSize(int mapWidth, int mapHeight);
+
 #endif
