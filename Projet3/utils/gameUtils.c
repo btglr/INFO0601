@@ -1,6 +1,11 @@
 #include <curses.h>
+#include <pthread.h>
 #include "gameUtils.h"
 #include "windowDrawer.h"
+#include <stdlib.h>
+#include "../lemming.h"
+#include "memoryUtils.h"
+#include "chunkManager.h"
 
 void initializeGame(int mapWidth, int mapHeight, char *map, WINDOW **borderInformationWindow,
                     WINDOW **informationWindow, WINDOW **borderGameWindow, WINDOW **gameWindow,
@@ -15,8 +20,23 @@ void initializeGame(int mapWidth, int mapHeight, char *map, WINDOW **borderInfor
     drawMap(*gameWindow, mapWidth, mapHeight, map);
 }
 
-void placeLemming(WINDOW *window, int lemmingNumber, int posX, int posY) {
-    drawSquare(window, LEMMING, posX, posY, TRUE);
+void placeLemming(WINDOW *window, map_t *map, int posX, int posY) {
+    int chunkId, chunkPos;
+    coord_t *coords;
+
+    coords = (coord_t*) malloc_check(sizeof(coord_t));
+    coords->x = posX / SQUARE_WIDTH;
+    coords->y = posY;
+
+    chunkId = getChunk(coords, map);
+
+    chunkPos = globalToLocalCoordinate(coords, map->chunkSize);
+
+    map->chunks[chunkId].squares[chunkPos].type = LEMMING;
+    updateChunk(window, map, chunkId);
+
+    map->chunks[chunkId].squares[chunkPos].lemming = (pthread_t*) malloc_check(sizeof(pthread_t));
+    pthread_create(map->chunks[chunkId].squares[chunkPos].lemming, NULL, lemming_thread, coords);
 }
 
 int getTool(int mouseX, int mouseY) {
