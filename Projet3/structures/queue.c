@@ -1,6 +1,6 @@
 #include <string.h>
 #include "queue.h"
-#include "memoryUtils.h"
+#include "../utils/memoryUtils.h"
 
 queue_t *createQueue(unsigned capacity) {
     queue_t *queue = (queue_t *) malloc_check(sizeof(queue_t));
@@ -17,11 +17,19 @@ queue_t *createQueue(unsigned capacity) {
 }
 
 void destroyQueue(queue_t *queue) {
+    queue_element_t *elem;
 /*
     for (i = 0; i < queue->capacity; ++i) {
         free(queue->requests[i]);
     }
 */
+
+    while (!isEmpty(queue)) {
+        elem = dequeue(queue);
+        free(elem->request);
+        free(elem->sourceAddr);
+        free(elem);
+    }
 
     free(queue->requests);
     free(queue);

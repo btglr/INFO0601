@@ -5,6 +5,11 @@
 #include <unistd.h>
 
 typedef struct {
+    int width;
+    int height;
+} chunk_size_t;
+
+typedef struct {
     /* TYPE 1 */
     unsigned char type;
     /*
@@ -36,7 +41,6 @@ typedef struct {
     /* TYPE 3 */
     unsigned char type;
     unsigned char width, height;
-    unsigned char cells[MAP_WIDTH * MAP_HEIGHT];
     /*
      * width and height depend on a constant?
      */
