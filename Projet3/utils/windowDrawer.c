@@ -72,7 +72,8 @@ void drawMap(WINDOW *window, int mapWidth, int mapHeight, char *map) {
         drawSquare(window, map[i], x, y, false);
     }
 
-    wrefresh(window);}
+    wrefresh(window);
+}
 
 void printInMiddle(WINDOW *window, int maxWidth, int maxHeight, char *text) {
     int length = (int) strlen(text);
