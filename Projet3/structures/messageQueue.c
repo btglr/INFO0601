@@ -1,26 +1,26 @@
 #include <string.h>
-#include "queue.h"
+#include "messageQueue.h"
 #include "../utils/memoryUtils.h"
 
-queue_t *createQueue(unsigned capacity) {
-    queue_t *queue = (queue_t *) malloc_check(sizeof(queue_t));
+messageQueue_t *createQueue(unsigned capacity) {
+    messageQueue_t *queue = (messageQueue_t *) malloc_check(sizeof(messageQueue_t));
     queue->capacity = capacity;
     queue->front = queue->size = 0;
     queue->rear = capacity - 1;
     queue->requests = (queue_element_t**) malloc_check(queue->capacity * sizeof(queue_element_t*));
 
     /*for (i = 0; i < capacity; ++i) {
-        queue->requests[i] = (queue_element_t*) malloc(MAX_LENGTH * sizeof(queue_element_t));
+        messageQueue->requests[i] = (queue_element_t*) malloc(MAX_LENGTH * sizeof(queue_element_t));
     }*/
 
     return queue;
 }
 
-void destroyQueue(queue_t *queue) {
+void destroyQueue(messageQueue_t *queue) {
     queue_element_t *elem;
 /*
-    for (i = 0; i < queue->capacity; ++i) {
-        free(queue->requests[i]);
+    for (i = 0; i < messageQueue->capacity; ++i) {
+        free(messageQueue->requests[i]);
     }
 */
 
@@ -35,29 +35,29 @@ void destroyQueue(queue_t *queue) {
     free(queue);
 }
 
-int isFull(queue_t *queue) {
+int isFull(messageQueue_t *queue) {
     return (queue->size == queue->capacity);
 }
 
-int isEmpty(queue_t *queue) {
+int isEmpty(messageQueue_t *queue) {
     return (queue->size == 0);
 }
 
-void enqueue(queue_t *queue, queue_element_t *item) {
+void enqueue(messageQueue_t *queue, queue_element_t *item) {
     if (isFull(queue))
         return;
 
     queue->rear = (queue->rear + 1) % queue->capacity;
 
-    /*strncpy(queue->requests[queue->rear], item, MAX_LENGTH - 1);
-    queue->requests[queue->rear][MAX_LENGTH - 1] = '\0';*/
+    /*strncpy(messageQueue->requests[messageQueue->rear], item, MAX_LENGTH - 1);
+    messageQueue->requests[messageQueue->rear][MAX_LENGTH - 1] = '\0';*/
 
     queue->requests[queue->rear] = item;
     queue->size = queue->size + 1;
-    /*printf("%d enqueued to queue\n", item);*/
+    /*printf("%d enqueued to messageQueue\n", item);*/
 }
 
-queue_element_t * dequeue(queue_t *queue) {
+queue_element_t * dequeue(messageQueue_t *queue) {
     queue_element_t *item;
 
     if (isEmpty(queue))
@@ -70,14 +70,14 @@ queue_element_t * dequeue(queue_t *queue) {
     return item;
 }
 
-queue_element_t * front(queue_t *queue) {
+queue_element_t * front(messageQueue_t *queue) {
     if (isEmpty(queue))
         return NULL;
 
     return queue->requests[queue->front];
 }
 
-queue_element_t * rear(queue_t *queue) {
+queue_element_t * rear(messageQueue_t *queue) {
     if (isEmpty(queue))
         return NULL;
 
