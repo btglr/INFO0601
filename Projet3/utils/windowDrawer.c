@@ -2,14 +2,19 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
+#include <pthread.h>
 #include "windowDrawer.h"
 #include "ncurses.h"
 #include "fileUtils.h"
 #include "../structures/constants.h"
 #include "utils.h"
 #include "chunkManager.h"
+#include "threadUtils.h"
 
 int cpt = 0;
+extern pthread_mutex_t displayMutex;
+
+pthread_mutex_t displayMutex;
 
 WINDOW* initializeWindow(int width, int height, int x, int y) {
     if ((COLS < x + width) || (LINES < y + height)) {
@@ -25,6 +30,14 @@ WINDOW *initializeSubWindow(WINDOW *window, int width, int height, int x, int y)
     return subwin(window, height, width, y, x);
 }
 
+/**
+ * Shouldn't be used outside of a function that uses mutexes
+ * @param window
+ * @param type
+ * @param x
+ * @param y
+ * @param refresh
+ */
 void drawSquare(WINDOW *window, int type, int x, int y, bool refresh) {
     chtype color;
     int i;
@@ -65,6 +78,8 @@ void drawSquare(WINDOW *window, int type, int x, int y, bool refresh) {
 void drawMap(WINDOW *window, int mapWidth, int mapHeight, char *map) {
     int i, x, y;
 
+    mutex_lock_check(&displayMutex);
+
     for(i = 0; i < mapWidth * mapHeight; ++i) {
         x = (i % mapWidth) * SQUARE_WIDTH;
         y = i / mapWidth;
@@ -73,6 +88,8 @@ void drawMap(WINDOW *window, int mapWidth, int mapHeight, char *map) {
     }
 
     wrefresh(window);
+
+    mutex_unlock_check(&displayMutex);
 }
 
 void printInMiddle(WINDOW *window, int maxWidth, int maxHeight, char *text) {
@@ -195,18 +212,17 @@ WINDOW *createStateWindow(WINDOW *border, int mapWidth) {
     mvwprintw(window, COMMAND_TOOLS_POS_Y, COMMAND_TOOLS_POS_X, "COMMANDS");
     wattroff(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
 
-    mvwprintw(window, COMMAND_TOOLS_ADD_POS_Y, COMMAND_TOOLS_POS_X, LEGEND_ADD_LEMMING);
-
     for (i = 0; i < NUMBER_LEMMINGS; ++i) {
         wattron(window, COLOR_PAIR(PAIR_COLOR_LEMMING));
         wattron(window, WA_BOLD);
-        mvwaddch(window, COMMAND_TOOLS_ADD_POS_Y, COMMAND_TOOLS_POS_X + (int) strlen(LEGEND_ADD_LEMMING) + (i * 3) + 1, LEMMING_CHAR);
-        mvwaddch(window, COMMAND_TOOLS_ADD_POS_Y, COMMAND_TOOLS_POS_X + (int) strlen(LEGEND_ADD_LEMMING) + (i * 3) + 2, LEMMING_CHAR);
+        mvwaddch(window, COMMAND_TOOLS_LEMMINGS, COMMAND_TOOLS_POS_X + (i * 3), LEMMING_CHAR);
+        mvwaddch(window, COMMAND_TOOLS_LEMMINGS, COMMAND_TOOLS_POS_X + (i * 3) + 1, LEMMING_CHAR);
         wattroff(window, WA_BOLD);
         wattroff(window, COLOR_PAIR(PAIR_COLOR_LEMMING));
-        mvwaddch(window, COMMAND_TOOLS_ADD_POS_Y, COMMAND_TOOLS_POS_X + (int) strlen(LEGEND_ADD_LEMMING) + (i * 3) + 3, ' ');
+        mvwaddch(window, COMMAND_TOOLS_LEMMINGS, COMMAND_TOOLS_POS_X + (i * 3) + 2, ' ');
     }
 
+    mvwprintw(window, COMMAND_TOOLS_ADD_POS_Y, COMMAND_TOOLS_POS_X, "+ Add Lemmings");
     mvwprintw(window, COMMAND_TOOLS_REMOVE_POS_Y, COMMAND_TOOLS_POS_X, "- Remove Lemming");
     mvwprintw(window, COMMAND_TOOLS_EXPLODE_POS_Y, COMMAND_TOOLS_POS_X, "@ Explode Lemmings");
     mvwprintw(window, COMMAND_TOOLS_FREEZE_POS_Y, COMMAND_TOOLS_POS_X, "# Freeze Lemming");
@@ -299,6 +315,8 @@ void printInformation(WINDOW *window, char *s, ...) {
 
     va_end(va);
 
+    mutex_lock_check(&displayMutex);
+
     if (cpt != 0) {
         wprintw(window, "\n");
     }
@@ -306,6 +324,73 @@ void printInformation(WINDOW *window, char *s, ...) {
     wprintw(window, "%s", buffer);
     wrefresh(window);
 
+    mutex_unlock_check(&displayMutex);
+
     cpt++;
+}
+
+void updateToolbox(WINDOW *window, int lemming, int tool) {
+    int firstCharPos;
+
+    mutex_lock_check(&displayMutex);
+
+    switch (tool) {
+        case TOOL_ADD:
+            firstCharPos = COMMAND_TOOLS_POS_X + (lemming * 3);
+
+            wattron(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+            wattron(window, WA_BOLD);
+            mvwaddch(window, COMMAND_TOOLS_INFORMATION, firstCharPos, 'A');
+            wattroff(window, WA_BOLD);
+            wattroff(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+
+            wrefresh(window);
+
+            break;
+
+        case TOOL_REMOVE:
+            firstCharPos = COMMAND_TOOLS_POS_X + (lemming * 3);
+
+            wattron(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+            wattron(window, WA_BOLD);
+            mvwaddch(window, COMMAND_TOOLS_INFORMATION, firstCharPos, ' ');
+            wattroff(window, WA_BOLD);
+            wattroff(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+
+            wrefresh(window);
+
+            break;
+
+        case TOOL_EXPLODE:
+            firstCharPos = COMMAND_TOOLS_POS_X + (lemming * 3);
+
+            wattron(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+            wattron(window, WA_BOLD);
+            mvwaddch(window, COMMAND_TOOLS_INFORMATION, firstCharPos, ' ');
+            wattroff(window, WA_BOLD);
+            wattroff(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+
+            wrefresh(window);
+
+            break;
+
+        case TOOL_FREEZE:
+            firstCharPos = COMMAND_TOOLS_POS_X + (lemming * 3);
+
+            wattron(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+            wattron(window, WA_BOLD);
+            mvwaddch(window, COMMAND_TOOLS_INFORMATION, firstCharPos, 'F');
+            wattroff(window, WA_BOLD);
+            wattroff(window, COLOR_PAIR(PAIR_COLOR_LEGEND));
+
+            wrefresh(window);
+
+            break;
+
+        case TOOL_PAUSE_RESUME:
+            break;
+    }
+
+    mutex_unlock_check(&displayMutex);
 }
 

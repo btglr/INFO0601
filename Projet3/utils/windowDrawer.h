@@ -85,4 +85,6 @@ WINDOW *createGameWindow(WINDOW *border, int mapWidth, int mapHeight);
 
 void printInformation(WINDOW *window, char *s, ...);
 
+void updateToolbox(WINDOW *window, int lemming, int tool);
+
 #endif
