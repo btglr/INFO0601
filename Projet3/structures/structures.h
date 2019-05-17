@@ -10,6 +10,54 @@ typedef struct {
 } chunk_size_t;
 
 typedef struct {
+    int x;
+    int y;
+} coord_t;
+
+typedef struct {
+    pthread_cond_t cond;
+    pthread_mutex_t mutex;
+    int value;
+} mutex_cond_t;
+
+typedef struct {
+    pthread_t *thread;
+    int id;
+    int timesRemoved;
+    bool dead;
+    int pipe[2];
+    mutex_cond_t action;
+} lemming_t;
+
+typedef struct {
+    char type;
+    /*pthread_t *lemming;*/
+    lemming_t *lemming;
+} square_t;
+
+typedef struct {
+    pthread_mutex_t mutex;
+    pthread_cond_t cond;
+    int chunkId;
+    int xBegin, yBegin;
+    int xEnd, yEnd;
+    square_t *squares;
+} chunk_t;
+
+typedef struct {
+    coord_t *coords;
+    int *pipe;
+} lemming_data_t;
+
+typedef struct {
+    int width;
+    int height;
+    int nbChunks;
+    chunk_size_t chunkSize;
+    chunk_t *chunks;
+} map_t;
+
+typedef struct {
     /* TYPE 1 */
     unsigned char type;
     /*
