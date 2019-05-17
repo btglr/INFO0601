@@ -1,4 +1,5 @@
 #include <string.h>
+#include <pthread.h>
 #include "../utils/memoryUtils.h"
 #include "updateQueue.h"
 
@@ -8,6 +9,7 @@ updateQueue_t *createUpdateQueue(unsigned capacity) {
     queue->front = queue->size = 0;
     queue->rear = capacity - 1;
     queue->messages = (updateMessage_t**) malloc_check(sizeof(updateMessage_t*) * queue->capacity);
+    pthread_mutex_init(&queue->mutex, NULL);
 
     return queue;
 }

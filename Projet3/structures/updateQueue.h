@@ -16,7 +16,7 @@ typedef struct updateQueue {
     int front, rear, size;
     unsigned capacity;
     updateMessage_t **messages;
-    pthread_mutex_t *mutex;
+    pthread_mutex_t mutex;
 } updateQueue_t;
 
 updateQueue_t* createUpdateQueue(unsigned capacity);
