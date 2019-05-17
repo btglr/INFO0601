@@ -8,8 +8,13 @@
 #include <curses.h>
 #include "chunkManager.h"
 #include "memoryUtils.h"
+#include "threadUtils.h"
 #include <stdlib.h>
 #include <pthread.h>
+
+extern pthread_mutex_t displayMutex;
+
+pthread_mutex_t displayMutex;
 
 /**
  * Gets the chunk corresponding to the given coordinates
@@ -56,22 +61,26 @@ void updateChunk(WINDOW *window, map_t *map, int chunkId) {
     yBegin = map->chunks[chunkId].yBegin;
     yEnd = map->chunks[chunkId].yEnd;
 
+    mutex_lock_check(&displayMutex);
+
     currSquare = 0;
     for (y = yBegin; y <= yEnd; ++y) {
-        fprintf(stderr, "DEBUG | ");
+        /*fprintf(stderr, "DEBUG | ");*/
 
         for (x = xBegin; x <= xEnd; ++x) {
-            fprintf(stderr, "%d ", map->chunks[chunkId].squares[currSquare].type);
+            /*fprintf(stderr, "%d ", map->chunks[chunkId].squares[currSquare].type);*/
             drawSquare(window, map->chunks[chunkId].squares[currSquare].type, x * SQUARE_WIDTH, y, FALSE);
             currSquare++;
         }
 
-        fprintf(stderr, "\n");
+        /*fprintf(stderr, "\n");*/
     }
 
-    fprintf(stderr, "DEBUG | Updated chunk %d\n", chunkId);
-
     wrefresh(window);
+
+    mutex_unlock_check(&displayMutex);
+
+    fprintf(stderr, "DEBUG | Updated chunk %d\n", chunkId);
 }
 
 /**
@@ -129,6 +138,7 @@ chunk_size_t determineChunkSize(int mapWidth, int mapHeight) {
 
 /**
  * Populates the chunks of a map according to the corresponding map (char*) buffer
+ * Doesn't need the mutexes as this is only started before any threads are
  * @param mapBuffer The map buffer
  * @param map The map object
  */
