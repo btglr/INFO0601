@@ -33,11 +33,14 @@ int isUpdateQueueEmpty(updateQueue_t *queue) {
     return (queue->size == 0);
 }
 
-void enqueueMessage(updateQueue_t *queue, WINDOW *window, int chunkId) {
+void enqueueMessage(updateQueue_t *queue, void *(*to_run) (void *), WINDOW *window, int chunkId) {
+    updateMessage_t *item;
+
     if (isUpdateQueueFull(queue))
         return;
 
-    updateMessage_t *item = (updateMessage_t*) malloc(sizeof(updateMessage_t));
+    item = (updateMessage_t*) malloc(sizeof(updateMessage_t));
+    item->to_run = to_run;
     item->window = window;
     item->chunkId = chunkId;
 

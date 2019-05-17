@@ -8,6 +8,7 @@
 #include "structures.h"
 
 typedef struct {
+    void *(*to_run)(void*);
     WINDOW *window;
     int chunkId;
 } updateMessage_t;
