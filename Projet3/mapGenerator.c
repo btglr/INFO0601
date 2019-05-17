@@ -4,10 +4,10 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <errno.h>
-#include "constants.h"
-#include "memoryUtils.h"
-#include "fileUtils.h"
-#include "ncurses.h"
+#include "structures/constants.h"
+#include "utils/memoryUtils.h"
+#include "utils/fileUtils.h"
+#include "utils/ncurses.h"
 
 int main(int argc, char *argv[]) {
     unsigned char width, height;
@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        printf("The file specified (%s) already exists, do you want to overwrite it? (Y/N) ", path);
+        fprintf(stderr, "DEBUG | The file specified (%s) already exists, do you want to overwrite it? (Y/N) ", path);
 
         if (scanf("%c", &confirmation) < 1) {
             stop_ncurses();
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
     writeFile(mapFd, &height, sizeof(unsigned char));
     writeFile(mapFd, map, sizeof(unsigned char) * height * width);
 
-    printf("Generated a map with dimensions %dw %dh, added %d obstacles\n", width, height, nbObstacles);
+    fprintf(stderr, "DEBUG | Generated a map with dimensions %dw %dh, added %d obstacles\n", width, height, nbObstacles);
 
     return EXIT_SUCCESS;
 }
