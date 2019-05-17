@@ -3,10 +3,10 @@
 #include <string.h>
 #include <signal.h>
 #include <curses.h>
-#include "queue.h"
-#include "socketUtils.h"
-#include "structures.h"
-#include "memoryUtils.h"
+#include "structures/messageQueue.h"
+#include "utils/socketUtils.h"
+#include "structures/structures.h"
+#include "utils/memoryUtils.h"
 
 bool run = TRUE;
 
@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     socklen_t clientAddressLength;
     struct sockaddr_in serverAddress;
     struct sockaddr *clientAddress = NULL;
-    queue_t *queue;
+    messageQueue_t *queue;
     queue_element_t *qElem;
     char *connection_response;
     struct sigaction action;
@@ -77,11 +77,11 @@ int main(int argc, char *argv[]) {
             if (type == TYPE_CONNECT_UDP_MASTER || type == TYPE_CONNECT_UDP_SLAVE) {
                 if (type == TYPE_CONNECT_UDP_MASTER) {
                     memcpy(&masterPort, connection_request + sizeof(unsigned char), sizeof(unsigned short));
-                    printf("Master just connected (TCP Port: %d)\n", masterPort);
+                    fprintf(stderr, "DEBUG | Master just connected (TCP Port: %d)\n", masterPort);
                 }
 
                 else {
-                    printf("Slave just connected\n");
+                    fprintf(stderr, "DEBUG | Slave just connected\n");
                 }
 
                 if (front(queue) != NULL) {
@@ -102,7 +102,7 @@ int main(int argc, char *argv[]) {
 
                     memcpy(connection_response, strAddress, sizeof(char) * 16);
                     memcpy(connection_response + sizeof(char) * 16, &masterPort, sizeof(unsigned short));
-                    printf("Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
+                    fprintf(stderr, "DEBUG | Sending address (%s) and TCP port (%d) to the Slave client\n", strAddress, masterPort);
 
                     if (type == TYPE_CONNECT_UDP_SLAVE) {
                         sendUDP(sock, connection_response, dataLength, qElem->sourceAddr, qElem->addrLen);
@@ -129,7 +129,7 @@ int main(int argc, char *argv[]) {
                     }
 
                     else {
-                        qElem = (queue_element_t *) malloc(sizeof(queue_element_t));
+                        qElem = (queue_element_t *) malloc_check(sizeof(queue_element_t));
                         qElem->request = connection_request;
                         qElem->sourceAddr = clientAddress;
                         qElem->addrLen = clientAddressLength;
@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
     free(connection_request);
 
     destroyQueue(queue);
-    printf("\tStopped server\n");
+    fprintf(stderr, "DEBUG | \tStopped server\n");
 
     return EXIT_SUCCESS;
 }
