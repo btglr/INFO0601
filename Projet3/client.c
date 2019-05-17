@@ -1,17 +1,27 @@
 #include <curses.h>
-#include "ncurses.h"
+#include "utils/ncurses.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
-#include "constants.h"
-#include "socketUtils.h"
-#include "structures.h"
-#include "memoryUtils.h"
-#include "fileUtils.h"
-#include "windowDrawer.h"
+#include "structures/constants.h"
+#include "utils/socketUtils.h"
+#include "structures/structures.h"
+#include "utils/memoryUtils.h"
+#include "utils/fileUtils.h"
+#include "utils/windowDrawer.h"
+#include "utils/gameUtils.h"
+#include "utils/chunkManager.h"
+#include "structures/updateQueue.h"
+#include "utils/threadUtils.h"
 #include <fcntl.h>
 #include <signal.h>
+#include <pthread.h>
+
+WINDOW *gameWindow;
+map_t *map;
+updateQueue_t *updateQueue;
+pthread_mutex_t displayMutex = PTHREAD_MUTEX_INITIALIZER;
 
 bool run = TRUE;
 
@@ -22,14 +32,27 @@ void handler(int sig) {
 }
 
 int main(int argc, char *argv[]) {
-    WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *gameWindow, *borderStateWindow, *stateWindow;
+    WINDOW *borderInformationWindow, *informationWindow, *borderGameWindow, *borderStateWindow, *stateWindow;
+    chunk_size_t chunkSize;
+    int currentChunk;
+    int nbChunks;
+    int i;
+    int lemmingId = -1;
+    bool isLemmingSelected;
+    int mouseX;
+    int relativeMouseX;
+    int mouseY;
+    int tool = -1;
+    unsigned char nbLemmings = 0;
     char serverIpAddress[16];
     char path[MAX_PATH_LENGTH];
+    char buffer[512];
     int serverPort;
     int sockUDP;
     int sockTCP = -1;
-    int sockSlaveClient;
+    int sockSlaveClient = -1;
     int ch;
+    int event;
     unsigned short tcpPort;
     struct sockaddr_in serverUDPAddress;
     struct sockaddr_in serverTCPAddress;
@@ -37,7 +60,7 @@ int main(int argc, char *argv[]) {
     int isMaster;
     int mapFd;
     char *connection_request;
-    char *map;
+    char *mapBuffer;
     char *request;
     unsigned char mapWidth;
     unsigned char mapHeight;
@@ -45,11 +68,14 @@ int main(int argc, char *argv[]) {
     unsigned short port;
     char address[16];
     struct sigaction action;
-    /*char *response;
-    ssize_t bytesRead;
-    ssize_t totalRead = 0;
-    unsigned char chunk[CHUNK_SIZE];*/
     unsigned char type;
+    /*pthread_t *lemmings[NUMBER_LEMMINGS];*/
+    lemming_t lemmings[NUMBER_LEMMINGS];
+    coord_t *coords;
+    int chunkPos;
+    int typeOnSquare;
+    lemming_t *currLemmingPtr;
+    bool placed;
 
     sigemptyset(&action.sa_mask);
     action.sa_flags = 0;
@@ -89,8 +115,8 @@ int main(int argc, char *argv[]) {
     sockUDP = createSocket(SOCK_DGRAM, IPPROTO_UDP);
     initAddress(&serverUDPAddress, serverPort, serverIpAddress);
 
-    printf("Server IP Address: %s\n", serverIpAddress);
-    printf("Server Port: %d\n", serverPort);
+    fprintf(stderr, "DEBUG | Server IP Address: %s\n", serverIpAddress);
+    fprintf(stderr, "DEBUG | Server Port: %d\n", serverPort);
 
     if (isMaster) {
         tcpPort = (unsigned short) atoi(argv[3]);
@@ -100,8 +126,8 @@ int main(int argc, char *argv[]) {
             exit(EXIT_FAILURE);
         }
 
-        printf("Filename: %s\n", path);
-        printf("TCP port: %d\n", tcpPort);
+        fprintf(stderr, "DEBUG | Filename: %s\n", path);
+        fprintf(stderr, "DEBUG | TCP port: %d\n", tcpPort);
 
         /* Establish the TCP socket before sending the connection request in case the port is taken, preventing the
          * server from queuing a client that won't be connected
@@ -115,11 +141,6 @@ int main(int argc, char *argv[]) {
 
         connection_request[0] = TYPE_CONNECT_UDP_MASTER;
         memcpy(connection_request + sizeof(unsigned char), &tcpPort, sizeof(unsigned short));
-
-        sendUDP(sockUDP, connection_request, dataLength, &serverUDPAddress, sizeof(struct sockaddr_in));
-        free(connection_request);
-
-        printf("Sent connection request to server\n");
     }
 
     else {
@@ -127,12 +148,12 @@ int main(int argc, char *argv[]) {
         connection_request = (char*) malloc_check(dataLength);
 
         connection_request[0] = TYPE_CONNECT_UDP_SLAVE;
-
-        sendUDP(sockUDP, connection_request, dataLength, &serverUDPAddress, sizeof(struct sockaddr_in));
-        free(connection_request);
-
-        printf("Sent connection request to server\n");
     }
+
+    sendUDP(sockUDP, connection_request, dataLength, &serverUDPAddress, sizeof(struct sockaddr_in));
+    free(connection_request);
+
+    fprintf(stderr, "DEBUG | Sent connection request to server\n");
 
     if (isMaster && sockTCP != -1) {
         /* Client is the master, wait for TCP connection from the slave */
@@ -147,8 +168,8 @@ int main(int argc, char *argv[]) {
         readFileOff(mapFd, &mapWidth, 0, SEEK_SET, sizeof(unsigned char));
         readFile(mapFd, &mapHeight, sizeof(unsigned char));
 
-        map = (char*) malloc_check(mapWidth * mapHeight * sizeof(unsigned char));
-        readFile(mapFd, map, mapWidth * mapHeight * sizeof(unsigned char));
+        mapBuffer = (char*) malloc_check(mapWidth * mapHeight * sizeof(unsigned char));
+        readFile(mapFd, mapBuffer, mapWidth * mapHeight * sizeof(unsigned char));
 
         dataLength = sizeof(unsigned char) * 3 + mapWidth * mapHeight * sizeof(unsigned char);
         request = (char*) malloc_check(dataLength);
@@ -157,17 +178,17 @@ int main(int argc, char *argv[]) {
         request[0] = TYPE_SEND_MAP;
         memcpy(request + sizeof(unsigned char), &mapWidth, sizeof(unsigned char));
         memcpy(request + 2 * sizeof(unsigned char), &mapHeight, sizeof(unsigned char));
-        memcpy(request + 3 * sizeof(unsigned char), map, mapWidth * mapHeight * sizeof(unsigned char));
+        memcpy(request + 3 * sizeof(unsigned char), mapBuffer, mapWidth * mapHeight * sizeof(unsigned char));
 
         writeFile(sockSlaveClient, request, dataLength);
         free(request);
 
-        printf("Sent map to Slave Client\n");
+        fprintf(stderr, "DEBUG | Sent map to Slave Client (%ld bytes)\n", dataLength);
 
         readFile(sockSlaveClient, &type, sizeof(unsigned char));
 
         if (type == TYPE_RESPONSE_MAP) {
-            printf("Received OK from Slave Client\n");
+            fprintf(stderr, "DEBUG | Received OK from Slave Client\n");
         }
 
         else {
@@ -189,7 +210,7 @@ int main(int argc, char *argv[]) {
 
         free(connection_response);
 
-        printf("Received response from server, TCP Port: %d | Address: %s\n", port, address);
+        fprintf(stderr, "DEBUG | Received response from server, TCP Port: %d | Address: %s\n", port, address);
 
         sockTCP = createSocket(SOCK_STREAM, IPPROTO_TCP);
         initAddress(&serverTCPAddress, port, address);
@@ -203,19 +224,21 @@ int main(int argc, char *argv[]) {
 
             readFile(sockTCP, &mapWidth, sizeof(unsigned char));
             readFile(sockTCP, &mapHeight, sizeof(unsigned char));
-            map = (char*) malloc_check(mapWidth * mapHeight * sizeof(unsigned char));
+            mapBuffer = (char*) malloc_check(mapWidth * mapHeight * sizeof(unsigned char));
 
-            if (readFile(sockTCP, map, mapWidth * mapHeight * sizeof(unsigned char)) == mapWidth * mapHeight * sizeof(unsigned char)) {
-                printf("Received map from Master Client\nDimensions: %dw, %dh\n", mapWidth, mapHeight);
+            if (readFile(sockTCP, mapBuffer, mapWidth * mapHeight * sizeof(unsigned char)) == mapWidth * mapHeight * sizeof(unsigned char)) {
+                fprintf(stderr, "DEBUG | Received map from Master Client\nDimensions: %dw, %dh\n", mapWidth, mapHeight);
 
                 writeFile(sockTCP, &type, sizeof(unsigned char));
-                printf("Sent OK to Master Client\n");
+                fprintf(stderr, "DEBUG | Sent OK to Master Client\n");
             }
 
             else {
                 fprintf(stderr, "Error: expected more bytes than received\n");
                 exit(EXIT_FAILURE);
             }
+
+            fprintf(stderr, "DEBUG | Read %ld bytes\n", mapWidth * mapHeight *sizeof(unsigned char) + 3);
         }
 
         else {
@@ -224,13 +247,16 @@ int main(int argc, char *argv[]) {
         }
 
         /*while ((bytesRead = readFile(sockTCP, chunk, sizeof(unsigned char) * CHUNK_SIZE)) > 0) {
-            printf("Read %ld bytes\n", bytesRead);
+            fprintf(stderr, "DEBUG | Read %ld bytes\n", bytesRead);
             request = realloc(request, (size_t) totalRead + bytesRead);
             memcpy(request + totalRead, chunk, (size_t) bytesRead);
             totalRead += bytesRead;
             memset(chunk, 0, CHUNK_SIZE);
         }*/
     }
+
+    /* Maximum of 256 updates in the queue */
+    updateQueue = createUpdateQueue(256);
 
     /* Initializing ncurses */
     initialize_ncurses();
@@ -242,59 +268,152 @@ int main(int argc, char *argv[]) {
 
     init_pair(PAIR_COLOR_OBSTACLE, COLOR_EMPTY, COLOR_OBSTACLE);
     init_pair(PAIR_COLOR_EMPTY, COLOR_EMPTY, COLOR_EMPTY);
+    init_pair(PAIR_COLOR_LEMMING, COLOR_WHITE, COLOR_LEMMING);
+    init_pair(PAIR_COLOR_LEGEND, COLOR_RED, COLOR_BLACK);
 
-    borderInformationWindow = initializeWindow(
-            mapWidth * SQUARE_WIDTH + BORDER_STATE_WINDOW_WIDTH + BORDER_WIDTH,
-            BORDER_INFORMATION_WINDOW_HEIGHT,
-            0,
-            0);
-    informationWindow = initializeSubWindow(borderInformationWindow,
-            mapWidth * SQUARE_WIDTH + BORDER_STATE_WINDOW_WIDTH + BORDER_WIDTH - 2,
-            BORDER_INFORMATION_WINDOW_HEIGHT - 2,
-            1,
-            1);
-    borderGameWindow = initializeWindow(
-            mapWidth * SQUARE_WIDTH + BORDER_WIDTH,
-            mapHeight + BORDER_HEIGHT,
-            0,
-            BORDER_INFORMATION_WINDOW_HEIGHT);
-    gameWindow = initializeSubWindow(borderGameWindow,
-            mapWidth * SQUARE_WIDTH + BORDER_WIDTH - 2,
-            mapHeight + BORDER_HEIGHT - 2,
-            1,
-            BORDER_INFORMATION_WINDOW_HEIGHT + 1);
-    borderStateWindow = initializeWindow(
-            BORDER_STATE_WINDOW_WIDTH,
-            BORDER_STATE_WINDOW_HEIGHT,
-            mapWidth * SQUARE_WIDTH + BORDER_WIDTH,
-            BORDER_INFORMATION_WINDOW_HEIGHT);
-    stateWindow = initializeSubWindow(borderStateWindow,
-            BORDER_STATE_WINDOW_WIDTH - 2,
-            BORDER_STATE_WINDOW_HEIGHT - 2,
-            mapWidth * SQUARE_WIDTH + BORDER_WIDTH + 1,
-            BORDER_INFORMATION_WINDOW_HEIGHT + 1);
+    initializeGame(mapWidth, mapHeight, mapBuffer, &borderInformationWindow, &informationWindow, &borderGameWindow, &gameWindow, &borderStateWindow, &stateWindow);
 
-    scrollok(informationWindow, true);
+    /* Determines the ideal chunk size according to the map's proportions */
+    chunkSize = determineChunkSize(mapWidth, mapHeight);
+    nbChunks = (mapHeight / chunkSize.height) * (mapWidth / chunkSize.width);
 
-    box(borderInformationWindow, 0, 0);
-    box(borderGameWindow, 0, 0);
-    box(borderStateWindow, 0, 0);
+    map = (map_t*) malloc_check(sizeof(map_t));
+    map->nbChunks = nbChunks;
+    map->chunks = createChunks(mapWidth, mapHeight, chunkSize);
+    map->width = mapWidth;
+    map->height = mapHeight;
+    map->chunkSize = chunkSize;
 
-    mvwprintw(borderInformationWindow, 0, 2, "Information");
-    mvwprintw(borderGameWindow, 0, 2, "Map Editor");
-    mvwprintw(borderStateWindow, 0, 2, "State");
+    initializeLemmings(lemmings, NUMBER_LEMMINGS);
+    populateChunks(mapBuffer, map);
 
-    wrefresh(borderInformationWindow);
-    wrefresh(informationWindow);
-    wrefresh(borderGameWindow);
-    wrefresh(gameWindow);
-    wrefresh(borderStateWindow);
-    wrefresh(stateWindow);
-
-    drawMap(gameWindow, mapWidth, mapHeight, map);
+    printInformation(informationWindow, "Map (%d, %d) | Chunk width: %d, height: %d", mapWidth, mapHeight, chunkSize.width, chunkSize.height);
 
     while (run && (ch = getch()) != KEY_F(2)) {
-        printf("%d\n", ch);
+        if ((ch == KEY_MOUSE) && (mouse_getpos(&mouseX, &mouseY, &event) == OK)) {
+            if(wmouse_trafo(stateWindow, &mouseY, &mouseX, FALSE) != FALSE) {
+                if (mouseY == COMMAND_TOOLS_LEMMINGS) {
+                    i = 0;
+                    isLemmingSelected = FALSE;
+
+                    while (i < NUMBER_LEMMINGS && !isLemmingSelected) {
+                        if (mouseX == COMMAND_TOOLS_POS_X + (i * 3) || mouseX == COMMAND_TOOLS_POS_X + (i * 3) + 1) {
+                            lemmingId = i;
+                            isLemmingSelected = TRUE;
+                        }
+                        
+                        i++;
+                    }
+
+                    if (isLemmingSelected) {
+                        printInformation(informationWindow, "Selected the lemming n°%d", lemmingId + 1);
+                    }
+                }
+                
+                else {
+                    tool = getTool(mouseX, mouseY);
+                    printInformation(informationWindow, "Selected tool %d", tool);
+                }
+            }
+
+            else if(wmouse_trafo(gameWindow, &mouseY, &mouseX, FALSE) != FALSE) {
+                relativeMouseX = mouseX / SQUARE_WIDTH;
+
+                coords = (coord_t*) malloc_check(sizeof(coord_t));
+                coords->x = relativeMouseX;
+                coords->y = mouseY;
+
+                currentChunk = getChunk(coords, map);
+
+                printInformation(informationWindow, "Click (%d, %d) was in chunk %d", relativeMouseX, mouseY, currentChunk);
+
+                chunkPos = globalToLocalCoordinate(coords, chunkSize);
+
+                mutex_lock_check(&map->chunks[currentChunk].mutex);
+
+                typeOnSquare = map->chunks[currentChunk].squares[chunkPos].type;
+
+                /*fprintf(stderr, "DEBUG | Clicked on (%d, %d) in the chunk %d at local coordinate %d\n", coords->x, coords->y, currentChunk, chunkPos);*/
+
+                mutex_unlock_check(&map->chunks[currentChunk].mutex);
+
+                switch (tool) {
+                    case TOOL_ADD:
+                        if (nbLemmings <= NUMBER_LEMMINGS && lemmingId < NUMBER_LEMMINGS && typeOnSquare != OBSTACLE) {
+                            mutex_lock_check(&map->chunks[currentChunk].mutex);
+
+                            placed = placeLemming(gameWindow, &lemmings[lemmingId], map, makeMultipleOf(mouseX, SQUARE_WIDTH), mouseY);
+
+                            mutex_unlock_check(&map->chunks[currentChunk].mutex);
+
+                            if (placed) {
+                                fprintf(stderr, "DEBUG | Lemming %d has been removed %d time(s)\n", lemmingId, lemmings[lemmingId].timesRemoved);
+                                printInformation(informationWindow, "Placed lemming %d at (%d, %d)", lemmingId, relativeMouseX, mouseY);
+                                updateToolbox(stateWindow, lemmingId, tool);
+                            }
+                        }
+
+                        break;
+
+                    case TOOL_REMOVE:
+                        if (typeOnSquare == LEMMING) {
+                            mutex_lock_check(&map->chunks[currentChunk].mutex);
+                            lemmingId = map->chunks[currentChunk].squares[chunkPos].lemming->id;
+
+                            if (map->chunks[currentChunk].squares[chunkPos].lemming->timesRemoved < 3) {
+                                printInformation(informationWindow, "Removed lemming %d from the map", lemmingId);
+                                removeLemming(gameWindow, &lemmings[lemmingId], map, currentChunk, chunkPos);
+                                updateToolbox(stateWindow, lemmingId, tool);
+                            }
+
+                            else {
+                                printInformation(informationWindow, "Lemming %d has already been removed the maximum amount of times", lemmingId);
+                            }
+
+                            mutex_unlock_check(&map->chunks[currentChunk].mutex);
+                        }
+
+                        break;
+
+                    case TOOL_EXPLODE:
+                        if (typeOnSquare == LEMMING) {
+                            mutex_lock_check(&map->chunks[currentChunk].mutex);
+
+                            currLemmingPtr = map->chunks[currentChunk].squares[chunkPos].lemming;
+                            lemmingId = currLemmingPtr->id;
+
+                            mutex_unlock_check(&map->chunks[currentChunk].mutex);
+
+                            explodeLemming(gameWindow, &lemmings[lemmingId], map, currentChunk, chunkPos);
+
+                            /* TODO Add it back to the list if it killed another lemming */
+                            updateToolbox(stateWindow, lemmingId, TOOL_EXPLODE);
+                        }
+
+                        break;
+
+                    case TOOL_FREEZE:
+                        if (typeOnSquare == LEMMING) {
+                            mutex_lock_check(&map->chunks[currentChunk].mutex);
+
+                            currLemmingPtr = map->chunks[currentChunk].squares[chunkPos].lemming;
+                            lemmingId = currLemmingPtr->id;
+
+                            mutex_unlock_check(&map->chunks[currentChunk].mutex);
+
+                            freezeLemming(&lemmings[lemmingId], map);
+
+                            updateToolbox(stateWindow, lemmingId, TOOL_FREEZE);
+                        }
+                        break;
+
+                    case TOOL_PAUSE_RESUME:
+                        break;
+                }
+
+                free(coords);
+            }
+        }
     }
 
     delwin(informationWindow);
@@ -304,10 +423,20 @@ int main(int argc, char *argv[]) {
     delwin(stateWindow);
     delwin(borderStateWindow);
 
+    destroyUpdateQueue(updateQueue);
     free(map);
-
-    /* Stopping ncurses */
+    free(mapBuffer);
     stop_ncurses();
+
+    if (isMaster) {
+        while (recv(sockSlaveClient, buffer, sizeof(buffer), 0) > 0) {}
+        close(sockSlaveClient);
+        close(sockTCP);
+    }
+
+    else {
+        close(sockTCP);
+    }
 
     return EXIT_SUCCESS;
 }
