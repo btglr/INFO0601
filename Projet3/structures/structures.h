@@ -5,13 +5,13 @@
 #include <unistd.h>
 
 typedef struct {
-    int width;
-    int height;
+    unsigned char width;
+    unsigned char height;
 } chunk_size_t;
 
 typedef struct {
-    int x;
-    int y;
+    unsigned char x;
+    unsigned char y;
 } coord_t;
 
 typedef struct {
@@ -25,7 +25,9 @@ typedef struct {
     int id;
     int timesRemoved;
     bool dead;
+    int state;
     int pipe[2];
+    coord_t *globalCoordinates;
     mutex_cond_t action;
 } lemming_t;
 
@@ -48,6 +50,12 @@ typedef struct {
     coord_t *coords;
     int *pipe;
 } lemming_data_t;
+
+typedef struct {
+    int socketFd;
+    int numberLemmings;
+    lemming_t *lemmings;
+} state_t;
 
 typedef struct {
     int width;
@@ -106,17 +114,6 @@ typedef struct {
 /**
  * After game starts
  */
-
-typedef struct {
-    /* NOT the same type as requests
-     * 0 - removed
-     * 1 - in the game
-     * 2 - dead
-     * 3 - blocked
-     */
-    unsigned char type;
-    unsigned char x, y;
-} state_t;
 
 typedef struct {
     /* TYPE 5 */
