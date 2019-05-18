@@ -3,7 +3,7 @@
 #
 
 EXEC = server client mapGenerator
-OBJETS = utils/ncurses.o utils/fileUtils.o utils/socketUtils.o structures/queue.o utils/memoryUtils.o utils/windowDrawer.o utils/gameUtils.o utils/utils.o utils/threadUtils.o
+OBJETS = utils/ncurses.o utils/fileUtils.o utils/socketUtils.o structures/messageQueue.o structures/updateQueue.o utils/memoryUtils.o utils/windowDrawer.o utils/gameUtils.o utils/utils.o utils/threadUtils.o lemming.o utils/chunkManager.o gameState.o
 NOM_PROJET = PROJET_FINAL
 
 #
@@ -24,10 +24,11 @@ OBJETS_O = $(OBJETS) $(EXEC_O)
 #
 
 CC = gcc
-CCFLAGS_STD = -Wall -O3 -Werror -ansi -pedantic -ggdb3
+# Attention au -O3 avec pthread TODO
+CCFLAGS_STD = -Wall -Werror -ansi -pedantic -ggdb3
 CCFLAGS_DEBUG = -D _DEBUG_
 CCFLAGS = $(CCFLAGS_STD) -D _GNU_SOURCE
-CCLIBS = -lncurses -lm
+CCLIBS = -lncurses -lm -pthread
 
 #
 # REGLES
@@ -95,26 +96,44 @@ utils/fileUtils.o: utils/fileUtils.c utils/fileUtils.h utils/ncurses.h \
  utils/memoryUtils.h
 utils/socketUtils.o: utils/socketUtils.c utils/socketUtils.h \
  utils/ncurses.h
-structures/queue.o: structures/queue.c structures/queue.h \
- structures/structures.h structures/constants.h \
+structures/messageQueue.o: structures/messageQueue.c \
+ structures/messageQueue.h structures/structures.h structures/constants.h \
  structures/../utils/memoryUtils.h
+structures/updateQueue.o: structures/updateQueue.c \
+ structures/../utils/memoryUtils.h structures/updateQueue.h \
+ structures/structures.h structures/constants.h
 utils/memoryUtils.o: utils/memoryUtils.c utils/memoryUtils.h \
  utils/ncurses.h
 utils/windowDrawer.o: utils/windowDrawer.c utils/windowDrawer.h \
  utils/../structures/structures.h utils/../structures/constants.h \
  utils/ncurses.h utils/fileUtils.h utils/../structures/constants.h \
- utils/utils.h
+ utils/utils.h utils/chunkManager.h utils/threadUtils.h
 utils/gameUtils.o: utils/gameUtils.c utils/gameUtils.h \
- utils/windowDrawer.h utils/../structures/structures.h \
- utils/../structures/constants.h
+ utils/../structures/structures.h utils/../structures/constants.h \
+ utils/windowDrawer.h utils/../lemming.h utils/memoryUtils.h \
+ utils/chunkManager.h utils/threadUtils.h
 utils/utils.o: utils/utils.c utils/utils.h
-utils/threadUtils.o: utils/threadUtils.c utils/threadUtils.h
-server.o: server.c structures/queue.h structures/structures.h \
+utils/threadUtils.o: utils/threadUtils.c utils/threadUtils.h \
+ utils/ncurses.h
+lemming.o: lemming.c lemming.h structures/constants.h \
+ utils/chunkManager.h utils/../structures/structures.h \
+ utils/../structures/constants.h utils/memoryUtils.h utils/threadUtils.h
+utils/chunkManager.o: utils/chunkManager.c utils/utils.h \
+ utils/../structures/constants.h utils/fileUtils.h utils/ncurses.h \
+ utils/windowDrawer.h utils/../structures/structures.h \
+ utils/../structures/constants.h utils/chunkManager.h utils/memoryUtils.h \
+ utils/threadUtils.h
+gameState.o: gameState.c gameState.h structures/structures.h \
+ structures/constants.h utils/fileUtils.h utils/memoryUtils.h \
+ utils/chunkManager.h utils/../structures/structures.h \
+ utils/threadUtils.h
+server.o: server.c structures/messageQueue.h structures/structures.h \
  structures/constants.h utils/socketUtils.h structures/structures.h \
  utils/memoryUtils.h
 client.o: client.c utils/ncurses.h structures/constants.h \
  utils/socketUtils.h structures/structures.h structures/constants.h \
  utils/memoryUtils.h utils/fileUtils.h utils/windowDrawer.h \
- utils/../structures/structures.h utils/gameUtils.h
+ utils/../structures/structures.h utils/gameUtils.h utils/chunkManager.h \
+ structures/updateQueue.h structures/structures.h utils/threadUtils.h
 mapGenerator.o: mapGenerator.c structures/constants.h utils/memoryUtils.h \
  utils/fileUtils.h utils/ncurses.h

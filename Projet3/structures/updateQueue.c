@@ -10,6 +10,7 @@ updateQueue_t *createUpdateQueue(unsigned capacity) {
     queue->rear = capacity - 1;
     queue->messages = (updateMessage_t**) malloc_check(sizeof(updateMessage_t*) * queue->capacity);
     pthread_mutex_init(&queue->mutex, NULL);
+    pthread_cond_init(&queue->cond, NULL);
 
     return queue;
 }
@@ -33,7 +34,7 @@ int isUpdateQueueEmpty(updateQueue_t *queue) {
     return (queue->size == 0);
 }
 
-void enqueueMessage(updateQueue_t *queue, void *(*to_run) (void *), WINDOW *window, int chunkId) {
+void enqueueMessage(updateQueue_t *queue, void *(*to_run) (void *), void *args) {
     updateMessage_t *item;
 
     if (isUpdateQueueFull(queue))
@@ -41,8 +42,7 @@ void enqueueMessage(updateQueue_t *queue, void *(*to_run) (void *), WINDOW *wind
 
     item = (updateMessage_t*) malloc(sizeof(updateMessage_t));
     item->to_run = to_run;
-    item->window = window;
-    item->chunkId = chunkId;
+    item->args = args;
 
     enqueueUpdate(queue, item);
 }

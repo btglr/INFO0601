@@ -9,8 +9,7 @@
 
 typedef struct {
     void *(*to_run)(void*);
-    WINDOW *window;
-    int chunkId;
+    void *args;
 } updateMessage_t;
 
 typedef struct updateQueue {
@@ -18,6 +17,7 @@ typedef struct updateQueue {
     unsigned capacity;
     updateMessage_t **messages;
     pthread_mutex_t mutex;
+    pthread_cond_t cond;
 } updateQueue_t;
 
 updateQueue_t* createUpdateQueue(unsigned capacity);

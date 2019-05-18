@@ -14,6 +14,8 @@
 #include "utils/chunkManager.h"
 #include "structures/updateQueue.h"
 #include "utils/threadUtils.h"
+#include "gameState.h"
+#include "windowUpdater.h"
 #include <fcntl.h>
 #include <signal.h>
 #include <pthread.h>
@@ -76,6 +78,9 @@ int main(int argc, char *argv[]) {
     int typeOnSquare;
     lemming_t *currLemmingPtr;
     bool placed;
+    pthread_t gameStateThread;
+    pthread_t windowUpdaterThread;
+    state_t *gameState;
 
     sigemptyset(&action.sa_mask);
     action.sa_flags = 0;
@@ -286,6 +291,17 @@ int main(int argc, char *argv[]) {
 
     initializeLemmings(lemmings, NUMBER_LEMMINGS);
     populateChunks(mapBuffer, map);
+
+    if (isMaster) {
+        gameState = (state_t*) malloc_check(sizeof(gameState));
+        gameState->socketFd = sockSlaveClient;
+        gameState->numberLemmings = NUMBER_LEMMINGS;
+        gameState->lemmings = lemmings;
+
+        create_thread_check(&gameStateThread, send_state, gameState);
+    }
+
+    create_thread_check(&windowUpdaterThread, updater, updateQueue);
 
     printInformation(informationWindow, "Map (%d, %d) | Chunk width: %d, height: %d", mapWidth, mapHeight, chunkSize.width, chunkSize.height);
 
