@@ -11,5 +11,7 @@ chunk_size_t determineChunkSize(int mapWidth, int mapHeight);
 void populateChunks(const char *mapBuffer, map_t *map);
 int globalToLocalCoordinate(coord_t *global, chunk_size_t chunkSize);
 int flattenCoordinate(coord_t *coord, int width);
+void lockAllChunks(map_t *map);
+void unlockAllChunks(map_t *map);
 
 #endif

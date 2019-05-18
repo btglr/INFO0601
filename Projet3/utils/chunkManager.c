@@ -196,3 +196,19 @@ int globalToLocalCoordinate(coord_t *global, chunk_size_t chunkSize) {
 int flattenCoordinate(coord_t *coord, int width) {
     return (coord->x + (coord->y * width));
 }
+
+void lockAllChunks(map_t *map) {
+    int i;
+
+    for (i = 0; i < map->nbChunks; ++i) {
+        mutex_lock_check(&map->chunks[i].mutex);
+    }
+}
+
+void unlockAllChunks(map_t *map) {
+    int i;
+
+    for (i = 0; i < map->nbChunks; ++i) {
+        mutex_unlock_check(&map->chunks[i].mutex);
+    }
+}
